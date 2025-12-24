@@ -2,9 +2,45 @@
 <html>
 <head>
   <title>Certificate Verification</title>
+  <meta charset="UTF-8">
 </head>
 <body>
+
   <h2>Certificate Verification</h2>
-  <p>Website is working.</p>
+
+  <input type="text" id="cert" placeholder="Enter Certificate Number">
+  <button onclick="verifyCert()">Verify</button>
+
+  <pre id="result"></pre>
+
+  <script>
+    const API_URL = "https://script.google.com/macros/s/AKfycbyEKx6AzEjRdPjeYUMjhOZNXtv0ybC7vgukImCW5qK76YZV8dT2CStaOUc5XvX_0flhEw/exec";
+
+    function verifyCert() {
+      const cert = document.getElementById("cert").value;
+      document.getElementById("result").textContent = "Checking...";
+
+      fetch(API_URL + "?cert=" + encodeURIComponent(cert))
+        .then(res => res.json())
+        .then(data => {
+          if (data.found) {
+            document.getElementById("result").textContent =
+              "Name: " + data.name + "\n" +
+              "Certificate: " + data.certificate + "\n" +
+              "Training: " + data.training + "\n" +
+              "Venue: " + data.venue + "\n" +
+              "Date: " + new Date(data.date).toLocaleDateString();
+          } else {
+            document.getElementById("result").textContent =
+              "Certificate not found.";
+          }
+        })
+        .catch(err => {
+          document.getElementById("result").textContent =
+            "Error connecting to server.";
+        });
+    }
+  </script>
+
 </body>
 </html>
