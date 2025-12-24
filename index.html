@@ -82,7 +82,7 @@
 <body>
   <div class="container">
     <img src="https://primed-rrm.github.io/Certificate-Verifier/PRIMED%20Logo%201.png" alt="Logo" class="logo">
-    <h2>PRIMED PRIMED Risk Reduction Management Training Services Certificate Verification</h2>
+    <h2>PRIMED Risk Reduction Management Training Services Certificate Verification</h2>
 
     <select id="trainingFilter">
       <option value="">All Trainings</option>
@@ -124,6 +124,7 @@
             }
 
             resultDiv.innerHTML =
+              YOUR CERTIFICATE IS VALID ✅
               "<b>Name:</b> " + data.name + "<br>" +
               "<b>Certificate Number:</b> " + data.certificate + "<br>" +
               "<b>Training Date:</b> " + new Date(data.date).toLocaleDateString() + "<br>" +
