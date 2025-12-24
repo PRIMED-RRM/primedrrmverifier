@@ -79,10 +79,10 @@
             result.innerHTML =
               "<b style='color:green'>VALID CERTIFICATE</b><br>" +
               "Name: " + data.name + "<br>" +
-              "Certificate: " + data.certificate + "<br>" +
-              "Training: " + data.training + "<br>" +
-              "Venue: " + data.venue + "<br>" +
-              "Date: " + new Date(data.date).toLocaleDateString();
+              "Control Number: " + data.certificate + "<br>" +
+              "Type of Training: " + data.training + "<br>" +
+              "Training Venue: " + data.venue + "<br>" +
+              "Training Date: " + new Date(data.date).toLocaleDateString();
           } else {
             result.innerHTML = "<b style='color:red'>Certificate not found</b>";
           }
