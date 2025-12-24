@@ -121,20 +121,24 @@
               result.innerHTML = `<b style='color:red'>Certificate does not match selected training ❌</b>`;
               return;
             }
+
             result.innerHTML =
               "<b style='color:green'>VALID CERTIFICATE ✅</b><br>" +
-              "Name: " + data.name + "<br>" +
-              "Certificate: " + data.certificate + "<br>" +
-              "Training: " + data.training + "<br>" +
-              "Venue: " + data.venue + "<br>" +
-              "Date: " + new Date(data.date).toLocaleDateString();
+              "<b>Participant's Name:</b> " + data.name + "<br>" +
+              "<b>Control Number:</b> " + data.certificate + "<br>" +
+              "<b>Types of Training:</b> " + data.training + "<br>" +
+              "<b>Training Venue:</b> " + data.venue + "<br>" +
+              "<b>Training Date:</b> " + new Date(data.date).toLocaleDateString();
+
             const beep = new Audio("https://www.soundjay.com/buttons/sounds/beep-07.mp3");
             beep.play();
           } else {
             result.innerHTML = "<b style='color:red'>Certificate not found ❌</b>";
           }
         })
-        .catch(() => { result.innerHTML = "<b style='color:red'>Error connecting to server</b>"; });
+        .catch(() => { 
+          result.innerHTML = "<b style='color:red'>Error connecting to server</b>"; 
+        });
     }
 
     function onScanSuccess(decodedText) {
@@ -151,7 +155,7 @@
     window.addEventListener('load', () => {
       const params = new URLSearchParams(window.location.search);
       const certParam = params.get('cert');
-      if (certParam) verifyCert(certParam);
+        if (certParam) verifyCert(certParam);
     });
 
     function printResult() {
