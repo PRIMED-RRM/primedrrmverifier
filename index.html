@@ -11,6 +11,7 @@
   <meta property="og:image" content="https://primed-rrm.github.io/Certificate-Verifier/PRIMED%20Logo%201.png">
   <meta property="og:url" content="https://primed-rrm.github.io/Certificate-Verifier/">
   <meta property="og:type" content="website">
+  <meta property="fb:app_id" content="1234567890"> <!-- Palitan ng actual FB App ID -->
 
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image">
@@ -155,7 +156,7 @@
     window.addEventListener('load', () => {
       const params = new URLSearchParams(window.location.search);
       const certParam = params.get('cert');
-        if (certParam) verifyCert(certParam);
+      if (certParam) verifyCert(certParam);
     });
 
     function printResult() {
