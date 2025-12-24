@@ -1,12 +1,13 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Certificate Verification</title>
+  <title>PRIMED Certificate Verification</title>
   <meta charset="UTF-8">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
   <style>
     body {
-      font-family: Arial, sans-serif;
-      background: #f0f2f5;
+      font-family: 'Roboto', sans-serif;
+      background: #f5f7fa;
       display: flex;
       justify-content: center;
       align-items: center;
@@ -15,29 +16,33 @@
     }
     .container {
       background: #fff;
-      padding: 20px 30px;
-      border-radius: 10px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+      padding: 25px 30px;
+      border-radius: 12px;
+      box-shadow: 0 5px 20px rgba(0,0,0,0.15);
       width: 100%;
-      max-width: 400px;
+      max-width: 420px;
       text-align: center;
       position: relative;
     }
     .logo {
-      width: 80px;
+      width: 90px;
       margin-bottom: 15px;
     }
-    input {
+    h2 {
+      color: #007bff;
+      margin-bottom: 15px;
+    }
+    input, select {
       width: 80%;
       padding: 8px;
       margin-bottom: 10px;
-      border-radius: 5px;
+      border-radius: 6px;
       border: 1px solid #ccc;
       font-size: 14px;
     }
     button {
-      padding: 8px 15px;
-      border-radius: 5px;
+      padding: 8px 18px;
+      border-radius: 6px;
       border: none;
       background: #007bff;
       color: white;
@@ -49,14 +54,14 @@
       background: #0056b3;
     }
     #result {
-      margin-top: 10px;
+      margin-top: 12px;
       text-align: left;
-      max-height: 150px;
+      max-height: 180px;
       overflow-y: auto;
       font-size: 14px;
-      background: #f9f9f9;
-      padding: 10px;
-      border-radius: 5px;
+      background: #f0f3f7;
+      padding: 12px;
+      border-radius: 6px;
       border: 1px solid #ddd;
     }
     #qr-reader {
@@ -71,8 +76,6 @@
       background: #1e7e34;
     }
   </style>
-
-  <!-- QR code library -->
   <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
 </head>
 <body>
@@ -81,7 +84,15 @@
     <!-- Logo -->
     <img src="https://raw.githubusercontent.com/PRIMED-RRM/Certificate-Verifier/refs/heads/main/PRIMED%20Logo%201.png" alt="Logo" class="logo">
 
-    <h2>Certificate Verification</h2>
+    <h2>PRIMED Certificate Verification</h2>
+
+    <!-- Training filter -->
+    <select id="trainingFilter">
+      <option value="">All Trainings</option>
+      <option value="STOP THE BLEED">STOP THE BLEED</option>
+      <option value="BLS">BLS</option>
+      <option value="Basic First Aid">Basic First Aid</option>
+    </select>
 
     <!-- Input and button -->
     <input type="text" id="cert" placeholder="Enter Certificate Number">
@@ -100,9 +111,9 @@
   <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbyEKx6AzEjRdPjeYUMjhOZNXtv0ybC7vgukImCW5qK76YZV8dT2CStaOUc5XvX_0flhEw/exec";
 
-    // Main verification function
     function verifyCert(certInput) {
       const cert = certInput || document.getElementById("cert").value;
+      const trainingFilter = document.getElementById("trainingFilter").value;
       const result = document.getElementById("result");
       result.textContent = "Checking...";
 
@@ -110,13 +121,17 @@
         .then(res => res.json())
         .then(data => {
           if (data.found) {
+            if (trainingFilter && data.training !== trainingFilter) {
+              result.innerHTML = `<b style='color:red'>Certificate does not match selected training ❌</b>`;
+              return;
+            }
             result.innerHTML =
               "<b style='color:green'>VALID CERTIFICATE ✅</b><br>" +
-              "Participant's Name: " + data.name + "<br>" +
-              "Control Number: " + data.certificate + "<br>" +
-              "Type of Training: " + data.training + "<br>" +
-              "Training Venue: " + data.venue + "<br>" +
-              "Training Date: " + new Date(data.date).toLocaleDateString();
+              "Name: " + data.name + "<br>" +
+              "Certificate: " + data.certificate + "<br>" +
+              "Training: " + data.training + "<br>" +
+              "Venue: " + data.venue + "<br>" +
+              "Date: " + new Date(data.date).toLocaleDateString();
             // optional beep
             const beep = new Audio("https://www.soundjay.com/buttons/sounds/beep-07.mp3");
             beep.play();
@@ -129,15 +144,15 @@
         });
     }
 
-    // QR Code scanner setup
-    function onScanSuccess(decodedText, decodedResult) {
+    // QR Code scanner
+    function onScanSuccess(decodedText) {
       html5QrcodeScanner.clear().then(_ => {
         document.getElementById("cert").value = decodedText;
         verifyCert(decodedText);
       }).catch(err => console.error("QR clear failed", err));
     }
 
-    var html5QrcodeScanner = new Html5QrcodeScanner(
+    const html5QrcodeScanner = new Html5QrcodeScanner(
       "qr-reader", { fps: 10, qrbox: 250 });
     html5QrcodeScanner.render(onScanSuccess);
 
@@ -148,7 +163,6 @@
       if (certParam) verifyCert(certParam);
     });
 
-    // Print result
     function printResult() {
       const content = document.getElementById('result').innerHTML;
       const newWin = window.open('', '', 'width=600,height=400');
