@@ -3,45 +3,95 @@
 <head>
   <title>Certificate Verification</title>
   <meta charset="UTF-8">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f0f2f5;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .container {
+      background: #fff;
+      padding: 20px 30px;
+      border-radius: 10px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+      width: 100%;
+      max-width: 400px;
+      text-align: center;
+    }
+    input {
+      width: 80%;
+      padding: 8px;
+      margin-bottom: 10px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      font-size: 14px;
+    }
+    button {
+      padding: 8px 15px;
+      border-radius: 5px;
+      border: none;
+      background: #007bff;
+      color: white;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    button:hover {
+      background: #0056b3;
+    }
+    #result {
+      margin-top: 15px;
+      text-align: left;
+      max-height: 150px;
+      overflow-y: auto;
+      font-size: 14px;
+      background: #f9f9f9;
+      padding: 10px;
+      border-radius: 5px;
+      border: 1px solid #ddd;
+    }
+  </style>
 </head>
 <body>
 
-  <h2>Certificate Verification</h2>
-
-  <input type="text" id="cert" placeholder="Enter Certificate Number">
-  <button onclick="verifyCert()">Verify</button>
-
-  <pre id="result"></pre>
+  <div class="container">
+    <h2>Certificate Verification</h2>
+    <input type="text" id="cert" placeholder="Enter Certificate Number">
+    <button onclick="verifyCert()">Verify</button>
+    <div id="result"></div>
+  </div>
 
   <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbyEKx6AzEjRdPjeYUMjhOZNXtv0ybC7vgukImCW5qK76YZV8dT2CStaOUc5XvX_0flhEw/exec";
 
     function verifyCert() {
       const cert = document.getElementById("cert").value;
-      document.getElementById("result").textContent = "Checking...";
+      const result = document.getElementById("result");
+      result.textContent = "Checking...";
 
       fetch(API_URL + "?cert=" + encodeURIComponent(cert))
         .then(res => res.json())
         .then(data => {
           if (data.found) {
-            document.getElementById("result").textContent =
-              "Name: " + data.name + "\n" +
-              "Control Number: " + data.certificate + "\n" +
-              "Type of Training: " + data.training + "\n" +
-              "Training Venue: " + data.venue + "\n" +
-              "Training Date: " + new Date(data.date).toLocaleDateString();
+            result.innerHTML =
+              "<b style='color:green'>VALID CERTIFICATE</b><br>" +
+              "Name: " + data.name + "<br>" +
+              "Certificate: " + data.certificate + "<br>" +
+              "Training: " + data.training + "<br>" +
+              "Venue: " + data.venue + "<br>" +
+              "Date: " + new Date(data.date).toLocaleDateString();
           } else {
-            document.getElementById("result").textContent =
-              "Certificate not found.";
+            result.innerHTML = "<b style='color:red'>Certificate not found</b>";
           }
         })
         .catch(() => {
-          document.getElementById("result").textContent =
-            "Error connecting to server.";
+          result.innerHTML = "<b style='color:red'>Error connecting to server</b>";
         });
     }
   </script>
 
 </body>
 </html>
-
