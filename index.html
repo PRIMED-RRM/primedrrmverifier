@@ -1,21 +1,23 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>PRIMED Risk Reduction Managgement Training Services Certificate Verification</title>
+  <title>PRIMED Risk Reduction Management Training Services Certificate Verification</title>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<meta property="og:title" content="PRIMED Risk Reduction Managgement Training Services Certificate Verifier">
-<meta property="og:description" content="Verify your training certificates online quickly and securely.">
-<meta property="og:image" content="https://primed-rrm.github.io/Certificate-Verifier/PRIMED%20Logo%201.png">
-<meta property="og:url" content="https://primed-rrm.github.io/Certificate-Verifier/">
-<meta property="og:type" content="website">
-<meta property="fb:app_id" content="1384616316725467">
+  <!-- Open Graph / Facebook -->
+  <meta property="og:title" content="PRIMED Risk Reduction Management Training Services Certificate Verifier">
+  <meta property="og:description" content="Verify your training certificates online quickly and securely.">
+  <meta property="og:image" content="https://primed-rrm.github.io/Certificate-Verifier/PRIMED%20Logo%201.png">
+  <meta property="og:url" content="https://primed-rrm.github.io/Certificate-Verifier/">
+  <meta property="og:type" content="website">
+  <meta property="fb:app_id" content="1384616316725467">
 
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="PRIMED Risk Reduction Managgement Training Services Certificate Verifier">
-<meta name="twitter:description" content="Verify your training certificates online quickly and securely.">
-<meta name="twitter:image" content="https://primed-rrm.github.io/Certificate-Verifier/PRIMED%20Logo%201.png">
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="PRIMED Risk Reduction Management Training Services Certificate Verifier">
+  <meta name="twitter:description" content="Verify your training certificates online quickly and securely.">
+  <meta name="twitter:image" content="https://primed-rrm.github.io/Certificate-Verifier/PRIMED%20Logo%201.png">
 
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
 
@@ -75,13 +77,14 @@
     .print-btn { margin-top: 10px; background: #28a745; }
     .print-btn:hover { background: #1e7e34; }
   </style>
+
   <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
 </head>
 
 <body>
   <div class="container">
     <img src="https://primed-rrm.github.io/Certificate-Verifier/PRIMED%20Logo%201.png" alt="Logo" class="logo">
-    <h2>PRIMED Risk Reduction Managgement Training ServicesD Certificate Verification</h2>
+    <h2>PRIMED Risk Reduction Management Training Services Certificate Verification</h2>
 
     <select id="trainingFilter">
       <option value="">All Trainings</option>
@@ -140,10 +143,11 @@
         });
     }
 
+    // QR Scan: Control Number only
     function onScanSuccess(decodedText) {
       html5QrcodeScanner.clear().then(_ => {
         document.getElementById("cert").value = decodedText;
-        verifyCert(decodedText);
+        // Remove auto verification; user must press "Verify"
       }).catch(err => console.error("QR clear failed", err));
     }
 
