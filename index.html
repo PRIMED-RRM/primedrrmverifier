@@ -7,6 +7,9 @@
 
 <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
 
+<!-- Preload QR library for instant scanner -->
+<script src="https://unpkg.com/html5-qrcode/minified/html5-qrcode.min.js"></script>
+
 <style>
 :root {
   --bg-color: #e3f2fd;
@@ -25,28 +28,24 @@
 
 * { box-sizing: border-box; margin:0; padding:0; }
 
-html, body {
-  height: 100%;
-  margin: 0;
-  padding: 0;
-}
+html, body { height: 100%; margin:0; padding:0; }
 
 body {
   font-family: 'Roboto', sans-serif;
   background: var(--bg-color);
   display: flex;
   flex-direction: column;
-  justify-content: space-between; /* Push footer down */
+  justify-content: space-between; /* push footer down */
   min-height: 100vh;
   align-items: center;
 }
 
 .container {
-  flex: 1; /* take remaining vertical space */
+  flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center; /* center content vertically */
+  justify-content: center;
   width: 95%;
   max-width: 500px;
   text-align: center;
@@ -61,10 +60,10 @@ body {
   justify-content: center;
   align-items: center;
   gap: 16px;
-  margin-bottom: 14px;
+  margin-bottom: 6px; /* lift logos a bit */
   flex-wrap: wrap;
 }
-.logo-wrap img { height: 60px; max-width: 45%; object-fit: contain; }
+.logo-wrap img { height: 65px; max-width: 45%; object-fit: contain; }
 
 .org-title { font-size: 12px; font-weight: 500; letter-spacing:1px; color: #555; margin-bottom:6px; }
 .main-title { font-size: 20px; font-weight:700; color: var(--primary-color); margin-bottom:18px; }
@@ -127,7 +126,6 @@ footer {
   font-size: 12px;
   color: #555;
   width: 100%;
-  background: var(--card-bg);
 }
 </style>
 </head>
@@ -187,7 +185,6 @@ footer {
 <audio id="beep-sound" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg" preload="auto"></audio>
 
 <script>
-// Fast shared link optimizations
 const API_URL = "https://script.google.com/macros/s/AKfycbyEKx6AzEjRdPjeYUMjhOZNXtv0ybC7vgukImCW5qK76YZV8dT2CStaOUc5XvX_0flhEw/exec";
 let qr, torch=false;
 
@@ -231,18 +228,7 @@ function onScanSuccess(text){
   });
 }
 
-// Async load of QR scanner
-const loadQR = () => {
-  const script = document.createElement("script");
-  script.src="https://unpkg.com/html5-qrcode/minified/html5-qrcode.min.js";
-  script.onload = ()=>console.log("QR library loaded");
-  document.body.appendChild(script);
-};
-
-document.addEventListener("DOMContentLoaded", loadQR);
-
 document.getElementById("openScannerBtn").onclick=()=>{
-  if(!window.Html5Qrcode){ alert("QR library still loading..."); return; }
   const reader=document.getElementById("qr-reader");
   if(reader.style.display==="block"){ qr.stop().then(()=>reader.style.display="none"); return; }
   reader.style.display="block";
