@@ -58,21 +58,14 @@
       font-size: 14px;
       font-weight: 500;
       cursor: pointer;
-      transition: 0.3s ease;
     }
     .btn-primary {
       background: linear-gradient(90deg, #0d6efd, #084298);
       color: #fff;
     }
-    .btn-primary:hover {
-      opacity: 0.9;
-    }
     .btn-secondary {
       background: #f1f1f1;
       color: #333;
-    }
-    .btn-secondary:hover {
-      background: #e1e1e1;
     }
     #qr-reader {
       width: 90%;
@@ -91,6 +84,12 @@
       max-height: 280px;
       overflow-y: auto;
     }
+    .result-note {
+      margin-top: 8px;
+      font-size: 11.5px;
+      color: #666;
+      line-height: 1.4;
+    }
     .valid { color: green; font-weight: 600; }
     .invalid { color: red; font-weight: 600; }
   </style>
@@ -104,13 +103,8 @@
     <h1>PRIMED Risk Reduction Management Training Services Certificate Verifier</h1>
 
     <p class="description">
-      <b>PRIMED Risk Reduction Management Training Services</b> 
-      the official training arm of 
+      <b>PRIMED Risk Reduction Management Training Services</b> is the official training arm of
       <b>ACER – Fire Rescue & Communication, Inc.</b>, a SEC-registered organization.
-      <br><br>
-      PRIMED aims to enhance preparedness by sharing practical knowledge and life-saving skills,
-      empowering individuals, responders, and communities to become ready and capable in medical,
-      emergency, disaster, and risk-related situations.
     </p>
 
     <select id="trainingFilter">
@@ -134,7 +128,13 @@
     </div>
 
     <div id="qr-reader"></div>
+
     <div id="result"></div>
+    <div class="result-note">
+      This verification result is based on records issued by PRIMED Risk Reduction Management Training Services.
+      Validity confirms participation and completion of the indicated training only and does not constitute
+      professional licensure or government accreditation.
+    </div>
 
     <audio id="beep-sound"
       src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg"
@@ -144,13 +144,16 @@
   <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbyEKx6AzEjRdPjeYUMjhOZNXtv0ybC7vgukImCW5qK76YZV8dT2CStaOUc5XvX_0flhEw/exec";
 
+    let qr;
+    let torch = false;
+
     function verifyCert(inputValue) {
       const cert = inputValue || document.getElementById("certInput").value.trim();
       const filter = document.getElementById("trainingFilter").value;
       const resultDiv = document.getElementById("result");
 
       if (!cert) {
-        resultDiv.innerHTML = "<span class='invalid'>Enter Your Certificate Number</span>";
+        resultDiv.innerHTML = "<span class='invalid'>Enter your certificate number</span>";
         return;
       }
 
@@ -181,10 +184,6 @@
         });
     }
 
-    let qr;
-    let cameraId = null;
-    let torch = false;
-
     function onScanSuccess(text) {
       document.getElementById("beep-sound").play();
       if (navigator.vibrate) navigator.vibrate(200);
@@ -207,10 +206,11 @@
       reader.style.display = "block";
       qr = new Html5Qrcode("qr-reader");
 
-      Html5Qrcode.getCameras().then(cams => {
-        cameraId = cams[0].id;
-        qr.start(cameraId, { fps: 10, qrbox: 250 }, onScanSuccess);
-      });
+      qr.start(
+        { facingMode: "environment" }, // BACK CAMERA
+        { fps: 10, qrbox: 250 },
+        onScanSuccess
+      );
     };
 
     document.getElementById("toggleFlashBtn").onclick = () => {
