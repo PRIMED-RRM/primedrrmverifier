@@ -28,24 +28,27 @@
 body {
   font-family: 'Roboto', sans-serif;
   background: var(--bg-color);
-  min-height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 10px;
+  height:100vh;
+  width:100%;
+  overflow:hidden;
+  position: relative;
 }
 
 .container {
+  position: absolute;
+  top:50%;
+  left:50%;
+  transform: translate(-50%, -50%);
+  width:95%;
+  max-width:500px;
   background: var(--card-bg);
-  border-radius: 18px;
+  border-radius:18px;
   box-shadow: 0 12px 35px rgba(0,0,0,0.15);
-  padding: 20px 20px 30px;
-  width: 100%;
-  max-width: 500px;
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  padding:20px 20px 30px;
+  text-align:center;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
 }
 
 .logo-wrap {
@@ -223,14 +226,13 @@ function onScanSuccess(text){
   });
 }
 
-// Async load of QR scanner
+// Async load QR scanner library
 const loadQR = () => {
   const script = document.createElement("script");
   script.src="https://unpkg.com/html5-qrcode/minified/html5-qrcode.min.js";
-  script.onload = ()=>console.log("QR library loaded");
+  script.async = true;
   document.body.appendChild(script);
 };
-
 document.addEventListener("DOMContentLoaded", loadQR);
 
 document.getElementById("openScannerBtn").onclick=()=>{
