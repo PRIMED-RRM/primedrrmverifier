@@ -5,119 +5,238 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <!-- Open Graph -->
-  <meta property="og:title" content="PRIMED Risk Reduction Management Training Services Certificate Verifier">
-  <meta property="og:description" content="Verify your training certificates online quickly and securely.">
-  <meta property="og:image" content="https://primed-rrm.github.io/Certificate-Verifier/PRIMED%20Logo%201.png">
-  <meta property="og:url" content="https://primed-rrm.github.io/Certificate-Verifier/">
-  <meta property="og:type" content="website">
-  <meta property="fb:app_id" content="1384616316725467">
-
-  <!-- Twitter Card -->
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="PRIMED Risk Reduction Management Training Services Certificate Verifier">
-  <meta name="twitter:description" content="Verify your training certificates online quickly and securely.">
-  <meta name="twitter:image" content="https://primed-rrm.github.io/Certificate-Verifier/PRIMED%20Logo%201.png">
+  <meta property="og:title" content="PRIMED Certificate Verifier">
+  <meta property="og:description" content="Verify PRIMED-issued training certificates securely and instantly.">
 
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/html5-qrcode"></script>
 
   <style>
-    body { font-family: 'Roboto', sans-serif; background: #f5f7fa; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-    .container { background: #fff; padding: 25px 30px; border-radius: 12px; box-shadow: 0 5px 20px rgba(0,0,0,0.15); width: 95%; max-width: 480px; text-align: center; position: relative; }
-    .logo { width: 90px; margin-bottom: 15px; }
-    h2 { color: #007bff; margin-bottom: 15px; }
-    input, select { width: 80%; padding: 8px; margin-bottom: 10px; border-radius: 6px; border: 1px solid #ccc; font-size: 14px; }
-    button { padding: 8px 18px; border-radius: 6px; border: none; background: #007bff; color: white; cursor: pointer; font-size: 14px; margin-bottom: 10px; }
-    button:hover { background: #0056b3; }
-    #result { margin-top: 12px; text-align: left; max-height: 250px; overflow-y: auto; font-size: 14px; background: #f0f3f7; padding: 12px; border-radius: 6px; border: 1px solid #ddd; }
-    #qr-reader { width: 90%; max-width: 300px; margin: 10px auto; display: none; } /* hidden by default */
-  </style>
+    body{
+      font-family:'Roboto',sans-serif;
+      background:linear-gradient(180deg,#eef3f9,#f9fbfd);
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      height:100vh;
+      margin:0;
+    }
+    .container{
+      background:#fff;
+      padding:26px 28px;
+      border-radius:14px;
+      box-shadow:0 8px 28px rgba(0,0,0,0.15);
+      width:95%;
+      max-width:480px;
+      text-align:center;
+    }
+    .logos{
+      display:flex;
+      justify-content:center;
+      gap:14px;
+      margin-bottom:10px;
+    }
+    .logos img{width:78px}
 
-  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+    /* TITLE FIX */
+    h2{
+      color:#0d6efd;
+      font-size:19px;
+      font-weight:700;
+      margin:6px 0 4px;
+      letter-spacing:0; /* straight PRIMED */
+      text-transform:uppercase;
+    }
+
+    /* DESCRIPTION PLACED AFTER TITLE */
+    .description{
+      font-size:13px;
+      color:#555;
+      line-height:1.45;
+      margin-bottom:14px;
+    }
+
+    input,select{
+      width:90%;
+      padding:10px;
+      margin-bottom:10px;
+      border-radius:8px;
+      border:1px solid #ccc;
+      font-size:14px;
+    }
+
+    .btn{
+      padding:10px 20px;
+      border-radius:8px;
+      border:none;
+      font-size:14px;
+      font-weight:500;
+      cursor:pointer;
+      margin:6px 4px;
+    }
+    .btn-primary{
+      background:linear-gradient(90deg,#0d6efd,#084298);
+      color:#fff;
+    }
+    .btn-scan{
+      background:linear-gradient(90deg,#198754,#0f5132);
+      color:#fff;
+    }
+    .btn-secondary{
+      background:#eef2f7;
+      color:#333;
+    }
+
+    #qr-reader{
+      width:90%;
+      max-width:300px;
+      margin:12px auto;
+      display:none;
+      border-radius:12px;
+      overflow:hidden;
+    }
+    #scanner-controls{
+      display:none;
+      margin-bottom:10px;
+    }
+    #result{
+      margin-top:12px;
+      text-align:left;
+      max-height:260px;
+      overflow-y:auto;
+      font-size:14px;
+      background:#f3f6fb;
+      padding:14px;
+      border-radius:10px;
+      border:1px solid #dce3ef;
+    }
+
+    /* DISCLAIMER ABOVE FOOTER */
+    .disclaimer{
+      margin-top:16px;
+      font-size:12px;
+      color:#666;
+      line-height:1.4;
+    }
+
+    footer{
+      margin-top:8px;
+      font-size:12px;
+      color:#555;
+    }
+  </style>
 </head>
 
 <body>
-  <div class="container">
-    <img src="https://primed-rrm.github.io/Certificate-Verifier/PRIMED%20Logo%201.png" alt="Logo" class="logo">
-    <h2>PRIMED Risk Reduction Management Training Services Certificate Verification</h2>
 
-    <select id="trainingFilter">
-      <option value="">All Trainings</option>
-      <option value="STOP THE BLEED">Stop The Bleed</option>
-      <option value="Basic Life Support">Basic Life Support</option>
-      <option value="Standard First Aid">Standard First Aid</option>
-      <option value="Basic First Aid">Basic First Aid</option>
-      <option value="Hands-Only CPR">Hands-Only CPR</option>
-      <option value="Introductory to DRRM">Introductory to DRRM</option>
-      <option value="Fire Safety Seminar">Fire Safety Seminar</option>
-      <option value="Earthquake Preparedness">Earthquake Preparedness</option>
-    </select>
+<div class="container">
 
-    <input type="text" id="certInput" placeholder="Enter Your Certificate Number">
-    <button onclick="verifyCert()">Verify</button>
-    <button id="openScannerBtn">Open QR Scanner</button>
-
-    <div id="qr-reader"></div>
-    <div id="result"></div>
+  <div class="logos">
+    <img src="https://primed-rrm.github.io/Certificate-Verifier/PRIMED%20Logo%201.png">
+    <img src="https://raw.githubusercontent.com/PRIMED-RRM/primedrrmverifier/refs/heads/main/BackgroundEraser_20251102_093006990.png">
   </div>
 
-  <script>
-    const API_URL = "https://script.google.com/macros/s/AKfycbyEKx6AzEjRdPjeYUMjhOZNXtv0ybC7vgukImCW5qK76YZV8dT2CStaOUc5XvX_0flhEw/exec";
+  <h2>PRIMED CERTIFICATE VERIFIER</h2>
 
-    function verifyCert(certInput) {
-      const cert = certInput || document.getElementById("certInput").value.trim();
-      const trainingFilter = document.getElementById("trainingFilter").value;
-      const resultDiv = document.getElementById("result");
-      if(!cert) { resultDiv.innerHTML = "<b style='color:red'>Enter Your Certificate Number</b>"; return; }
+  <!-- DESCRIPTION EXACT PLACEMENT -->
+  <div class="description">
+    This official verification portal confirms the authenticity of training certificates
+    issued by <b>PRIMED Risk Reduction Management Training Services</b>, the training arm of
+    <b>ACER – Fire Rescue & Communication, Inc.</b>
+  </div>
 
-      resultDiv.textContent = "Checking...";
+  <select id="trainingFilter">
+    <option value="">All Trainings</option>
+    <option value="STOP THE BLEED">Stop The Bleed</option>
+    <option value="Basic Life Support">Basic Life Support</option>
+    <option value="Standard First Aid">Standard First Aid</option>
+    <option value="Basic First Aid">Basic First Aid</option>
+    <option value="Hands-Only CPR">Hands-Only CPR</option>
+  </select>
 
-      fetch(API_URL + "?cert=" + encodeURIComponent(cert))
-        .then(res => res.json())
-        .then(data => {
-          if(data.found) {
-            if(trainingFilter && data.training !== trainingFilter) {
-              resultDiv.innerHTML = "<b style='color:red'>Certificate does not match selected training ❌</b>";
-              return;
-            }
+  <input type="text" id="certInput" placeholder="Enter Certificate Number">
 
-            resultDiv.innerHTML =
-              "<b>YOUR CERTIFICATE IS VALID ✅</b><br>" +
-              "<b>Name:</b> " + data.name + "<br>" +
-              "<b>Certificate Number:</b> " + data.certificate + "<br>" +
-              "<b>Training Date:</b> " + new Date(data.date).toLocaleDateString() + "<br>" +
-              "<b>Training Venue:</b> " + data.venue + "<br>" +
-              "<b>Types of Training:</b> " + data.training;
-          } else {
-            resultDiv.innerHTML = "<b style='color:red'>Certificate not found ❌</b>";
-          }
-        })
-        .catch(() => { resultDiv.innerHTML = "<b style='color:red'>Error connecting to server</b>"; });
-    }
+  <div>
+    <button class="btn btn-primary" onclick="verifyCert()">Verify Certificate</button>
+    <button class="btn btn-scan" id="openScannerBtn">Scan QR Code</button>
+  </div>
 
-    // QR Scanner
-    let html5QrcodeScanner;
-    const qrReaderDiv = document.getElementById('qr-reader');
-    const openBtn = document.getElementById('openScannerBtn');
+  <div id="qr-reader"></div>
 
-    function onScanSuccess(decodedText) {
-      html5QrcodeScanner.clear().then(() => {
-        qrReaderDiv.style.display = 'none';
-        document.getElementById("certInput").value = decodedText;
-        verifyCert(decodedText);
-      }).catch(err => console.error("QR clear failed", err));
-    }
+  <div id="scanner-controls">
+    <button class="btn btn-secondary" id="flashBtn">Toggle Flashlight</button>
+  </div>
 
-    openBtn.addEventListener('click', () => {
-      qrReaderDiv.style.display = 'block';
-      if(!html5QrcodeScanner) {
-        html5QrcodeScanner = new Html5QrcodeScanner(
-          "qr-reader",
-          { fps: 10, qrbox: 250, rememberLastUsedCamera: true }
-        );
-        html5QrcodeScanner.render(onScanSuccess);
-      }
+  <div id="result"></div>
+
+  <!-- DISCLAIMER ABOVE FOOTER -->
+  <div class="disclaimer">
+    This verification is based solely on official PRIMED training records and does not
+    constitute government certification, licensure, or international accreditation
+    or certification.
+  </div>
+
+  <footer>
+    © 2025 PRIMED RRMTS | All rights reserved
+  </footer>
+
+</div>
+
+<audio id="beep" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg" preload="auto"></audio>
+
+<script>
+const API_URL="https://script.google.com/macros/s/AKfycbyEKx6AzEjRdPjeYUMjhOZNXtv0ybC7vgukImCW5qK76YZV8dT2CStaOUc5XvX_0flhEw/exec";
+
+let qr=null, videoTrack=null, torch=false;
+
+function verifyCert(v){
+  const cert=v||certInput.value.trim();
+  const res=result;
+  if(!cert){res.innerHTML="<b style='color:red'>Please enter a certificate number.</b>";return;}
+  res.innerHTML="Verifying…";
+
+  fetch(API_URL+"?cert="+encodeURIComponent(cert))
+    .then(r=>r.json())
+    .then(d=>{
+      if(d.found){
+        res.innerHTML="<b style='color:green'>CERTIFICATE VERIFIED ✅</b><br><br>"+
+        "<b>Name:</b> "+d.name+"<br>"+
+        "<b>Certificate #:</b> "+d.certificate+"<br>"+
+        "<b>Training:</b> "+d.training+"<br>"+
+        "<b>Date:</b> "+new Date(d.date).toLocaleDateString()+"<br>"+
+        "<b>Venue:</b> "+d.venue;
+        beep.play();
+        navigator.vibrate&&navigator.vibrate([200,100,200]);
+      }else res.innerHTML="<b style='color:red'>Certificate not found ❌</b>";
     });
-  </script>
+}
+
+openScannerBtn.onclick=()=>{
+  const reader=qr-reader, ctrl=scanner-controls;
+  if(qr){
+    qr.stop().then(()=>qr.clear());
+    qr=null; reader.style.display="none"; ctrl.style.display="none"; return;
+  }
+  reader.style.display="block"; ctrl.style.display="block";
+  qr=new Html5Qrcode("qr-reader");
+  qr.start({facingMode:"environment"},{fps:10,qrbox:250},t=>{
+    qr.stop().then(()=>qr.clear());
+    qr=null; reader.style.display="none"; ctrl.style.display="none";
+    certInput.value=t; verifyCert(t);
+  }).then(()=>{
+    const v=document.querySelector("#qr-reader video");
+    if(v&&v.srcObject) videoTrack=v.srcObject.getVideoTracks()[0];
+  });
+};
+
+flashBtn.onclick=()=>{
+  if(!videoTrack) return;
+  const c=videoTrack.getCapabilities();
+  if(!c.torch){alert("Flashlight not supported");return;}
+  torch=!torch;
+  videoTrack.applyConstraints({advanced:[{torch}]});
+};
+</script>
+
 </body>
 </html>
