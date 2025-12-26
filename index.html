@@ -213,23 +213,45 @@ function verifyCert(v){
     });
 }
 
-// QR Scanner toggle (back camera, only opens on button click)
-let qr=null, videoTrack=null, torch=false;
+const API_URL="https://script.google.com/macros/s/AKfycbyEKx6AzEjRdPjeYUMjhOZNXtv0ybC7vgukImCW5qK76YZV8dT2CStaOUc5XvX_0flhEw/exec";
 
-document.getElementById("openScannerBtn").onclick=async ()=>{
-  const reader=document.getElementById("qr-reader");
-  const ctrl=document.getElementById("scanner-controls");
-
-  // Close scanner if already open
-  if(qr){
-    await qr.stop().catch(console.error);
-    qr.clear();
-    qr=null;
-    videoTrack=null;
-    reader.style.display="none";
-    ctrl.style.display="none";
+// Verify certificate
+function verifyCert(v){
+  const cert=v||document.getElementById("certInput").value.trim();
+  const res=document.getElementById("result");
+  if(!cert){
+    res.innerHTML="<b style='color:red'>Please enter a certificate number.</b>";
     return;
   }
+
+  res.innerHTML="Verifying…";
+
+  fetch(API_URL+"?cert="+encodeURIComponent(cert))
+    .then(r=>r.json())
+    .then(d=>{
+      if(d.found){
+        res.innerHTML="<b style='color:green'>CERTIFICATE VERIFIED ✅</b><br><br>"+
+        "<b>Name:</b> "+d.name+"<br>"+
+        "<b>Certificate #:</b> "+d.certificate+"<br>"+
+        "<b>Training:</b> "+d.training+"<br>"+
+        "<b>Date:</b> "+new Date(d.date).toLocaleDateString()+"<br>"+
+        "<b>Venue:</b> "+d.venue;
+
+        document.getElementById("beep").play();
+        if(navigator.vibrate) navigator.vibrate([200,100,200]);
+      } else {
+        res.innerHTML="<b style='color:red'>Certificate not found ❌</b>";
+      }
+    });
+}
+
+// QR Scanner
+let qr=null, videoTrack=null, torch=false;
+
+// Start scanner automatically on page load
+window.addEventListener('DOMContentLoaded', async ()=>{
+  const reader=document.getElementById("qr-reader");
+  const ctrl=document.getElementById("scanner-controls");
 
   reader.style.display="block";
   ctrl.style.display="block";
@@ -238,8 +260,8 @@ document.getElementById("openScannerBtn").onclick=async ()=>{
 
   try{
     await qr.start(
-      {facingMode:"environment"},
-      {fps:10,qrbox:250},
+      {facingMode:"environment"}, // back camera
+      {fps:10, qrbox:250},
       decodedText=>{
         document.getElementById("certInput").value=decodedText;
         verifyCert(decodedText);
@@ -261,6 +283,15 @@ document.getElementById("openScannerBtn").onclick=async ()=>{
     console.error("Scanner start failed:",err);
     document.getElementById("result").innerHTML="<b style='color:red'>Unable to open camera</b>";
   }
+});
+
+// Flashlight toggle
+document.getElementById("flashBtn").onclick=()=>{
+  if(!videoTrack){ alert("Flashlight not supported"); return; }
+  const cap=videoTrack.getCapabilities();
+  if(!cap.torch){ alert("Flashlight not supported"); return; }
+  torch=!torch;
+  videoTrack.applyConstraints({advanced:[{torch:torch}]}).catch(console.error);
 };
 
 // Flashlight toggle
