@@ -3,22 +3,18 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Test Load</title>
-<!-- Tamang CDN link -->
+<title>Test Script Load</title>
 <script src="https://unpkg.com/html5-qrcode@2.3.10/min/html5-qrcode.min.js"></script>
 </head>
 <body>
-<button id="check">Check if Html5Qrcode loaded</button>
+<h1>Testing if html5-qrcode loads</h1>
 <div id="status"></div>
-
 <script>
-document.getElementById('check').onclick = () => {
-  if (typeof Html5Qrcode !== 'undefined') {
-    document.getElementById('status').innerText = 'Loaded!';
-  } else {
-    document.getElementById('status').innerText = 'Not loaded!';
-  }
-};
+if (typeof Html5Qrcode !== 'undefined') {
+  document.getElementById('status').textContent = 'html5-qrcode loaded successfully!';
+} else {
+  document.getElementById('status').textContent = 'Failed to load html5-qrcode.';
+}
 </script>
 </body>
 </html>
