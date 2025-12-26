@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PRIMED Admin & Certificate Verifier</title>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/jsqr/dist/jsQR.js"></script>
+<style>
+body{font-family:Roboto,sans-serif;background:#eef3f9;margin:0;padding:0;}
+.container{max-width:960px;margin:20px auto;background:#fff;padding:20px;border-radius:10px;box-shadow:0 5px 20px rgba(0,0,0,0.1);}
+h2{color:#0d6efd;text-transform:uppercase;}
+input,select,button{padding:8px;margin:4px;border-radius:6px;border:1px solid #ccc;}
+button{cursor:pointer;}
+.primary{background:#0d6efd;color:#fff;border:none;}
+.success{color:green;}
+.error{color:red;}
+table{width:100%;border-collapse:collapse;margin-top:10px;}
+th,td{border:1px solid #ccc;padding:6px;text-align:left;}
+.actions button{margin-right:4px;}
+#scanner{display:none;margin-top:10px;}
+video{width:100%;border-radius:8px;}
+.notice{background:#fff3cd;padding:8px;border:1px solid #ffeeba;color:#856404;border-radius:6px;margin-top:10px;}
+</style>
+</head>
+<body>
+<div class="container">
+<h2>PRIMED Admin Panel & Certificate Verifier</h2>
+
+<div>
+  <h3>Certificate Verification</h3>
+  <input type="text" id="certInput" placeholder="Enter Certificate Number">
+  <button class="primary" onclick="verify()">Verify</button>
+  <button class="primary" onclick="toggleScanner()">Scan QR</button>
+  <div id="result"></div>
+</div>
+
+<div id="scanner">
+  <video id="video" autoplay playsinline></video>
+  <canvas id="canvas" hidden></canvas>
+</div>
+
+<hr>
+
+<div>
+  <h3>Trainees Management</h3>
+  <button class="primary" onclick="loadTrainees()">Load Trainees</button>
+  <table id="traineesTable">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Name</th>
+        <th>Certificate</th>
+        <th>Training</th>
+        <th>Venue</th>
+        <th>Date</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <h4>Add / Edit Trainee</h4>
+  <input type="hidden" id="editIndex">
+  <input type="text" id="name" placeholder="Name">
+  <input type="text" id="certificate" placeholder="Certificate Number">
+  <input type="text" id="training" placeholder="Training">
+  <input type="text" id="venue" placeholder="Venue">
+  <input type="date" id="date">
+  <button class="primary" onclick="addOrUpdateTrainee()">Submit</button>
+  <div id="actionResult"></div>
+</div>
+
+<audio id="beep" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg" preload="auto"></audio>
+
+</div>
+
+<script>
+const API_URL = "https://script.google.com/macros/s/AKfycby6afWBoKfTldJKFBzThLBE-Nf3sGfhaWojSDMw3F7Wjirol1EW_qWIpCIubfPdhCnL/exec";
+const beep = document.getElementById("beep");
+
+/* Certificate Verification */
+document.getElementById("certInput").addEventListener("keydown",e=>{if(e.key==="Enter")verify();});
+function verify(cert){
+  const c = cert||document.getElementById("certInput").value.trim();
+  const res = document.getElementById("result");
+  if(!c){res.innerHTML="<span class='error'>Enter certificate number</span>";return;}
+  res.innerHTML="Verifying…";
+  fetch(API_URL+"?cert="+encodeURIComponent(c))
+    .then(r=>r.json())
+    .then(d=>{
+      if(d.found){
+        beep.play();
+        res.innerHTML=`<span class='success'>Certificate Verified ✅</span><br>
+          <b>Name:</b> ${d.name}<br>
+          <b>Certificate #:</b> ${d.certificate}<br>
+          <b>Training:</b> ${d.training}<br>
+          <b>Venue:</b> ${d.venue}<br>
+          <b>Date:</b> ${new Date(d.date).toLocaleDateString()}`;
+      } else res.innerHTML="<span class='error'>Certificate not found ❌</span>";
+    })
+    .catch(()=>res.innerHTML="<span class='error'>Server error ❌</span>");
+}
+
+/* QR Scanner */
+let stream=null, scanning=false;
+function toggleScanner(){
+  const scanner=document.getElementById("scanner");
+  const video=document.getElementById("video");
+  if(scanning){stream.getTracks().forEach(t=>t.stop());scanner.style.display="none";scanning=false;return;}
+  navigator.mediaDevices.getUserMedia({video:{facingMode:"environment"}})
+    .then(s=>{
+      stream=s;video.srcObject=s;scanner.style.display="block";scanning=true;
+      video.onloadedmetadata=()=>{video.play();scanLoop();}
+    })
+    .catch(()=>alert("Camera access denied"));
+}
+function scanLoop(){
+  if(!scanning) return;
+  const video=document.getElementById("video");
+  const canvas=document.getElementById("canvas");
+  const ctx=canvas.getContext("2d");
+  const scale = 400 / Math.max(video.videoWidth, video.videoHeight);
+  canvas.width = video.videoWidth * scale;
+  canvas.height = video.videoHeight * scale;
+  ctx.drawImage(video,0,0,canvas.width,canvas.height);
+  const img=ctx.getImageData(0,0,canvas.width,canvas.height);
+  const qr=jsQR(img.data,canvas.width,canvas.height);
+  if(qr){beep.play();document.getElementById("certInput").value=qr.data;toggleScanner();verify(qr.data);return;}
+  requestAnimationFrame(scanLoop);
+}
+
+/* Load Trainees */
+function loadTrainees(){
+  fetch(API_URL+"?action=list")
+    .then(r=>r.json())
+    .then(data=>{
+      const tbody=document.querySelector("#traineesTable tbody");
+      tbody.innerHTML="";
+      data.forEach((t,i)=>{
+        const tr=document.createElement("tr");
+        tr.innerHTML=`<td>${i+1}</td>
+          <td>${t.name}</td>
+          <td>${t.certificate}</td>
+          <td>${t.training}</td>
+          <td>${t.venue}</td>
+          <td>${new Date(t.date).toLocaleDateString()}</td>
+          <td class="actions">
+            <button onclick="editTrainee(${i})">Edit</button>
+            <button onclick="deleteTrainee(${i})">Delete</button>
+          </td>`;
+        tbody.appendChild(tr);
+      });
+    })
+    .catch(()=>alert("Failed to load trainees"));
+}
+
+/* Add / Update Trainee */
+function addOrUpdateTrainee(){
+  const index = document.getElementById("editIndex").value;
+  const payload={
+    name: document.getElementById("name").value,
+    certificate: document.getElementById("certificate").value,
+    training: document.getElementById("training").value,
+    venue: document.getElementById("venue").value,
+    date: document.getElementById("date").value
+  };
+  const action = index==="" ? "add":"update";
+  if(action=="update") payload.index=index;
+  fetch(API_URL+"?action="+action,{
+    method:"POST",
+    body: JSON.stringify(payload)
+  }).then(r=>r.json()).then(res=>{
+    document.getElementById("actionResult").innerHTML="<span class='success'>Saved successfully ✅</span>";
+    document.getElementById("editIndex").value="";
+    document.getElementById("name").value="";
+    document.getElementById("certificate").value="";
+    document.getElementById("training").value="";
+    document.getElementById("venue").value="";
+    document.getElementById("date").value="";
+    loadTrainees();
+  }).catch(()=>document.getElementById("actionResult").innerHTML="<span class='error'>Server error ❌</span>");
+}
+
+/* Edit / Delete Functions */
+let traineesCache=[];
+function editTrainee(idx){
+  fetch(API_URL+"?action=list").then(r=>r.json()).then(data=>{
+    traineesCache = data;
+    const t = data[idx];
+    document.getElementById("editIndex").value=idx;
+    document.getElementById("name").value=t.name;
+    document.getElementById("certificate").value=t.certificate;
+    document.getElementById("training").value=t.training;
+    document.getElementById("venue").value=t.venue;
+    document.getElementById("date").value=t.date.split("T")[0];
+  });
+}
+function deleteTrainee(idx){
+  if(!confirm("Delete this trainee?")) return;
+  fetch(API_URL+"?action=delete",{
+    method:"POST",
+    body: JSON.stringify({index:idx})
+  }).then(r=>r.json()).then(res=>{
+    loadTrainees();
+  }).catch(()=>alert("Delete failed"));
+}
+</script>
+</body>
+</html>
