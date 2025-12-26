@@ -66,7 +66,6 @@ button{
 
 .primary{background:#0d6efd;color:#fff}
 .scan{background:#198754;color:#fff}
-.upload{background:#fd7e14;color:#fff}
 .browser{background:#6c757d;color:#fff}
 
 #scanner{
@@ -142,8 +141,6 @@ the training arm of <b>ACER – Fire Rescue & Communication, Inc.</b>
 <div>
   <button class="primary" onclick="verify()">Verify</button>
   <button class="scan" onclick="toggleScanner()">Scan QR</button>
-  <button class="upload" onclick="uploadQR()">Upload QR</button>
-  <input type="file" id="qrFile" accept="image/*" hidden>
 </div>
 
 <div id="browserNotice" class="notice" style="display:none">
@@ -257,21 +254,26 @@ function toggleScanner(){
     });
 }
 
+// Optimized scan loop with grayscale for faster detection
 function scanLoop(){
   if(!scanning) return;
   const video=document.getElementById("video");
   const canvas=document.getElementById("canvas");
   const ctx=canvas.getContext("2d");
 
-  // Scale canvas for faster scanning
-  const scale = 400 / Math.max(video.videoWidth, video.videoHeight);
-  canvas.width = video.videoWidth * scale;
-  canvas.height = video.videoHeight * scale;
-
+  // Draw video at original resolution
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
   ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-  const img=ctx.getImageData(0,0,canvas.width,canvas.height);
-  const qr=jsQR(img.data, canvas.width, canvas.height);
 
+  // Grayscale conversion
+  const imgData = ctx.getImageData(0,0,canvas.width,canvas.height);
+  const gray = new Uint8ClampedArray(imgData.width*imgData.height);
+  for(let i=0; i<imgData.data.length; i+=4){
+    gray[i/4] = 0.299*imgData.data[i] + 0.587*imgData.data[i+1] + 0.114*imgData.data[i+2];
+  }
+
+  const qr = jsQR(gray, canvas.width, canvas.height);
   if(qr){
     beep.play();
     document.getElementById("certInput").value=qr.data;
@@ -281,40 +283,6 @@ function scanLoop(){
   }
   requestAnimationFrame(scanLoop);
 }
-
-/* UPLOAD QR */
-function uploadQR(){
-  document.getElementById("qrFile").click();
-}
-document.getElementById("qrFile").onchange=e=>{
-  const file=e.target.files[0];
-  if(!file) return;
-
-  const img=new Image();
-  img.onload=()=>{
-    // Resize image to max 800px for jsQR
-    const maxDim=800;
-    let w=img.width, h=img.height;
-    if(w>h && w>maxDim){ h = h*(maxDim/w); w=maxDim; }
-    else if(h>w && h>maxDim){ w = w*(maxDim/h); h=maxDim; }
-    else if(w===h && w>maxDim){ w=h=maxDim; }
-
-    const c=document.createElement("canvas");
-    c.width=w;
-    c.height=h;
-    const ctx=c.getContext("2d");
-    ctx.drawImage(img,0,0,w,h);
-
-    const d=ctx.getImageData(0,0,w,h);
-    const qr=jsQR(d.data,w,h);
-    if(qr){
-      beep.play();
-      document.getElementById("certInput").value=qr.data;
-      verify(qr.data);
-    }else alert("❌ QR not readable");
-  };
-  img.src=URL.createObjectURL(file);
-};
 </script>
 </body>
 </html>
