@@ -254,26 +254,20 @@ function toggleScanner(){
     });
 }
 
-// Optimized scan loop with grayscale for faster detection
 function scanLoop(){
   if(!scanning) return;
   const video=document.getElementById("video");
   const canvas=document.getElementById("canvas");
   const ctx=canvas.getContext("2d");
 
-  // Draw video at original resolution
-  canvas.width = video.videoWidth;
-  canvas.height = video.videoHeight;
+  const scale = 400 / Math.max(video.videoWidth, video.videoHeight);
+  canvas.width = video.videoWidth * scale;
+  canvas.height = video.videoHeight * scale;
+
   ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+  const img=ctx.getImageData(0,0,canvas.width,canvas.height);
+  const qr=jsQR(img.data, canvas.width, canvas.height);
 
-  // Grayscale conversion
-  const imgData = ctx.getImageData(0,0,canvas.width,canvas.height);
-  const gray = new Uint8ClampedArray(imgData.width*imgData.height);
-  for(let i=0; i<imgData.data.length; i+=4){
-    gray[i/4] = 0.299*imgData.data[i] + 0.587*imgData.data[i+1] + 0.114*imgData.data[i+2];
-  }
-
-  const qr = jsQR(gray, canvas.width, canvas.height);
   if(qr){
     beep.play();
     document.getElementById("certInput").value=qr.data;
