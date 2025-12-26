@@ -1,3 +1,4 @@
+<!-- Pinal na version: mas maliit ang camera preview, maayos ang stop, at walang error after scan -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -28,13 +29,40 @@
     }
     .container {
       background: #fff;
-      padding: 26px 28px;
+      padding: 20px;
       border-radius: 14px;
       box-shadow: 0 8px 28px rgba(0,0,0,0.15);
       width: 95%;
       max-width: 480px;
       text-align: center;
     }
+    /* Smaller camera container for better fit */
+    #qr-reader {
+      display: none;
+      margin: 12px auto;
+      border-radius: 12px;
+      overflow: hidden;
+      width: 200px; /* mas maliit na size */
+      height: 200px;
+    }
+    /* Video element inside qr-reader */
+    #qr-video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover; /* para sakto lang at hindi distorted */
+    }
+    #result {
+      margin-top: 12px;
+      text-align: left;
+      max-height: 260px;
+      overflow-y: auto;
+      font-size: 14px;
+      background: #f3f6fb;
+      padding: 14px;
+      border-radius: 10px;
+      border: 1px solid #dce3ef;
+    }
+    /* other styles stay the same */
     .logos {
       display: flex;
       justify-content: center;
@@ -84,36 +112,6 @@
       background: linear-gradient(90deg, #fd7e14, #d9480f);
       color: #fff;
     }
-    #qr-reader {
-      width: 90%;
-      max-width: 300px;
-      margin: 12px auto;
-      display: none; /* Hidden by default, shown when scanning */
-      border-radius: 12px;
-      overflow: hidden;
-    }
-    #result {
-      margin-top: 12px;
-      text-align: left;
-      max-height: 260px;
-      overflow-y: auto;
-      font-size: 14px;
-      background: #f3f6fb;
-      padding: 14px;
-      border-radius: 10px;
-      border: 1px solid #dce3ef;
-    }
-    .disclaimer {
-      margin-top: 16px;
-      font-size: 12px;
-      color: #666;
-      line-height: 1.4;
-    }
-    footer {
-      margin-top: 8px;
-      font-size: 12px;
-      color: #555;
-    }
   </style>
 </head>
 <body>
@@ -153,7 +151,11 @@
     <input type="file" id="qrFileInput" accept="image/*" style="display:none" />
   </div>
 
-  <div id="qr-reader"></div>
+  <!-- QR code scanning area -->
+  <div id="qr-reader">
+    <video id="qr-video"></video>
+  </div>
+
   <div id="result"></div>
 
   <div class="disclaimer">
@@ -172,7 +174,7 @@
 <script>
 const API_URL = "https://script.google.com/macros/s/AKfycbyEKx6AzEjRdPjeYUMjhOZNXtv0ybC7vgukImCW5qK76YZV8dT2CStaOUc5XvX_0flhEw";
 
-// Verify certificate
+// Verify certificate function remains same
 function verifyCert(certInput) {
   const cert = certInput || document.getElementById("certInput").value.trim();
   const res = document.getElementById("result");
@@ -214,60 +216,58 @@ function verifyCert(certInput) {
     });
 }
 
-// QR Scanner using jsQR
+// QR code scanning setup
 let scanning = false;
-const qrCanvas = document.createElement('canvas');
-const qrContext = qrCanvas.getContext('2d');
+const qrVideo = document.getElementById('qr-video');
+const qrReaderDiv = document.getElementById('qr-reader');
 
 document.getElementById("openScannerBtn").onclick = async () => {
-  const readerDiv = document.getElementById("qr-reader");
   if (scanning) {
-    // Stop scanning
+    // Stop scan
     stopScan();
-    readerDiv.style.display = "none";
+    qrReaderDiv.style.display = "none";
     return;
   }
-  // Start scanning
-  readerDiv.style.display = "block";
+  // Start scan
+  qrReaderDiv.style.display = "block";
   scanning = true;
-  const video = document.createElement('video');
-  video.setAttribute('playsinline', 'true'); // for iOS
-
-  // Clear previous content
-  readerDiv.innerHTML = '';
-  readerDiv.appendChild(video);
-
   try {
     const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
-    video.srcObject = stream;
-    await video.play();
+    qrVideo.srcObject = stream;
+    await qrVideo.play();
 
-    // Set canvas size to video size
-    qrCanvas.width = video.videoWidth;
-    qrCanvas.height = video.videoHeight;
+    // Keep aspect ratio small
+    qrVideo.style.width = "200px";
+    qrVideo.style.height = "200px";
 
     // Scan loop
-    const scanLoop = () => {
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+
+    const scan = () => {
       if (!scanning) {
-        // Stop video stream
-        stream.getTracks().forEach(track => track.stop());
+        // stop stream
+        stream.getTracks().forEach(t => t.stop());
         return;
       }
-      qrContext.drawImage(video, 0, 0, qrCanvas.width, qrCanvas.height);
-      const imageData = qrContext.getImageData(0, 0, qrCanvas.width, qrCanvas.height);
-      const code = jsQR(imageData.data, qrCanvas.width, qrCanvas.height);
+      // Draw frame
+      canvas.width = qrVideo.videoWidth;
+      canvas.height = qrVideo.videoHeight;
+      ctx.drawImage(qrVideo, 0, 0, canvas.width, canvas.height);
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const code = jsQR(imageData.data, canvas.width, canvas.height);
       if (code) {
         document.getElementById("certInput").value = code.data;
         verifyCert(code.data);
         stopScan();
-        document.getElementById("qr-reader").style.display = "none";
+        qrReaderDiv.style.display = "none";
         return;
       }
-      requestAnimationFrame(scanLoop);
+      requestAnimationFrame(scan);
     };
-    scanLoop();
+    scan();
   } catch (err) {
-    console.error("Camera access error:", err);
+    console.error("Camera error:", err);
     document.getElementById("result").innerHTML = "<b style='color:red'>Unable to access camera</b>";
   }
 };
@@ -280,29 +280,31 @@ function stopScan() {
 const qrFileInput = document.getElementById("qrFileInput");
 document.getElementById("uploadQRBtn").onclick = () => qrFileInput.click();
 
-qrFileInput.onchange = async (event) => {
-  const file = event.target.files[0];
+qrFileInput.onchange = () => {
+  const file = qrFileInput.files[0];
   if (!file) return;
-  const img = new Image();
   const reader = new FileReader();
   reader.onload = () => {
+    const img = new Image();
     img.src = reader.result;
+    img.onload = () => {
+      // draw to canvas
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      canvas.width = img.width;
+      canvas.height = img.height;
+      ctx.drawImage(img, 0, 0);
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const code = jsQR(imageData.data, canvas.width, canvas.height);
+      if (code) {
+        document.getElementById("certInput").value = code.data;
+        verifyCert(code.data);
+      } else {
+        document.getElementById("result").innerHTML = "<b style='color:red'>Unable to read QR code from image</b>";
+      }
+    };
   };
   reader.readAsDataURL(file);
-  img.onload = () => {
-    // Draw image to canvas
-    qrCanvas.width = img.width;
-    qrCanvas.height = img.height;
-    qrContext.drawImage(img, 0, 0);
-    const imageData = qrContext.getImageData(0, 0, qrCanvas.width, qrCanvas.height);
-    const code = jsQR(imageData.data, qrCanvas.width, qrCanvas.height);
-    if (code) {
-      document.getElementById("certInput").value = code.data;
-      verifyCert(code.data);
-    } else {
-      document.getElementById("result").innerHTML = "<b style='color:red'>Unable to read QR code from image</b>";
-    }
-  };
 };
 </script>
 </body>
