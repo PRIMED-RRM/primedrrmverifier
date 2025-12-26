@@ -242,7 +242,7 @@ This verification is based solely on PRIMED records and is not a government cert
 </div>
 
 <script>
-const API_URL="https://script.google.com/macros/s/AKfycbwjH17flRqgdL5UfTx6EXCBDbdselynyt3aUmLfYVJl1aobBKtQbmdFoP7a6HlVMtKOtA/exec";
+const API_URL="https://script.google.com/macros/s/AKfycbygQs-6C7nqBAJIBcCtvkp2dPN_PNlEpE7MWLuHuFar/dev";
 const beep=document.getElementById("beep");
 
 /* ENTER KEY */
@@ -253,7 +253,6 @@ document.getElementById("certInput").addEventListener("keydown", e=>{
 /* IN-APP BROWSER DETECTION */
 const ua=navigator.userAgent.toLowerCase();
 const isInApp = ua.includes("fbav") || ua.includes("fban") || ua.includes("instagram");
-
 function openInBrowser(){ window.open(window.location.href,"_blank"); }
 
 /* VERIFY */
@@ -312,7 +311,11 @@ let isAdmin=false;
 function toggleAdminLogin(){
   if(!isAdmin){
     const pass=prompt("Enter Admin Password:");
-    if(pass==="PRIMEDAdmin123"){ isAdmin=true; document.getElementById("adminPanel").style.display="block"; loadTrainees(); }
+    if(pass==="PRIMEDAdmin123"){ 
+      isAdmin=true; 
+      document.getElementById("adminPanel").style.display="block"; 
+      loadTrainees(); 
+    }
     else alert("Incorrect Password!");
   } else { isAdmin=false; document.getElementById("adminPanel").style.display="none"; }
 }
@@ -350,31 +353,62 @@ function addTrainee(){
   const venue=document.getElementById("adminVenue").value;
   const date=document.getElementById("adminDate").value;
   if(!name||!certificate||!training||!venue||!date){ alert("Please fill all fields"); return; }
-  fetch(API_URL+"?action=add",{ method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({name,certificate,training,venue,date})})
-  .then(r=>r.json()).then(res=>{ alert(res.message); loadTrainees(); });
+  fetch(API_URL+"?action=add",{ 
+    method:"POST", 
+    headers:{"Content-Type":"application/json"}, 
+    body:JSON.stringify({name,certificate,training,venue,date})
+  })
+  .then(r=>r.json())
+  .then(res=>{ 
+    alert(res.message); 
+    loadTrainees(); // auto-refresh
+    document.getElementById("adminName").value="";
+    document.getElementById("adminCert").value="";
+    document.getElementById("adminTraining").value="";
+    document.getElementById("adminVenue").value="";
+    document.getElementById("adminDate").value="";
+  });
 }
 
 // Delete trainee
 function deleteTrainee(index){
   if(!confirm("Delete this trainee?")) return;
-  fetch(API_URL+"?action=delete",{ method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({index})})
-  .then(r=>r.json()).then(res=>{ alert(res.message); loadTrainees(); });
+  fetch(API_URL+"?action=delete",{ 
+    method:"POST", 
+    headers:{"Content-Type":"application/json"}, 
+    body:JSON.stringify({index})
+  })
+  .then(r=>r.json())
+  .then(res=>{ 
+    alert(res.message); 
+    loadTrainees(); // auto-refresh
+  });
 }
 
 // Update trainee
 function editTrainee(index){
-  fetch(API_URL+"?action=list").then(r=>r.json()).then(data=>{
-    const t=data[index];
-    const name=prompt("Full Name",t.name);
-    const certificate=prompt("Certificate #",t.certificate);
-    const training=prompt("Training",t.training);
-    const venue=prompt("Venue",t.venue);
-    const date=prompt("Date (YYYY-MM-DD)",t.date);
-    if(name && certificate && training && venue && date){
-      fetch(API_URL+"?action=update",{ method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({index,name,certificate,training,venue,date})})
-      .then(r=>r.json()).then(res=>{ alert(res.message); loadTrainees(); });
-    }
-  });
+  fetch(API_URL+"?action=list")
+    .then(r=>r.json())
+    .then(data=>{
+      const t=data[index];
+      const name=prompt("Full Name",t.name);
+      const certificate=prompt("Certificate #",t.certificate);
+      const training=prompt("Training",t.training);
+      const venue=prompt("Venue",t.venue);
+      const date=prompt("Date (YYYY-MM-DD)",t.date);
+      if(name && certificate && training && venue && date){
+        fetch(API_URL+"?action=update",{ 
+          method:"POST", 
+          headers:{"Content-Type":"application/json"}, 
+          body:JSON.stringify({index,name,certificate,training,venue,date})
+        })
+        .then(r=>r.json())
+        .then(res=>{ 
+          alert(res.message); 
+          loadTrainees(); // auto-refresh
+        });
+      }
+    });
 }
 </script>
 </body>
