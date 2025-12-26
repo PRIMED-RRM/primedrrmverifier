@@ -132,25 +132,25 @@ function verify(cert){
   const c=cert||document.getElementById("certInput").value.trim();
   const filter=document.getElementById("trainingFilter").value;
   const res=document.getElementById("result");
-  if(!c){res.innerHTML="Please enter certificate number"; return;}
+  if(!c){res.innerHTML="❌ Please enter certificate number"; return;}
   res.innerHTML="Verifying…";
   fetch(API_URL+"?cert="+encodeURIComponent(c))
     .then(r=>r.json())
     .then(d=>{
       if(d.found){
-        if(filter && d.training!==filter){ res.innerHTML="Training does not match filter"; return; }
+        if(filter && d.training!==filter){ res.innerHTML="❌ Training does not match filter"; return; }
         beep.play();
         res.innerHTML=`
           <b style="color:green">CERTIFICATE VERIFIED ✅</b><br><br>
           <b>Name:</b>${d.name}<br>
-          <b>Certificate Number:</b>${d.certificate}<br>
-          <b>Type of Training:</b>${d.training}<br>
-          <b>Training Date:</b>${d.date}<br>
-          <b>Training Venue:</b>${d.venue}
+          <b>Certificate #:</b>${d.certificate}<br>
+          <b>Training:</b>${d.training}<br>
+          <b>Date:</b>${d.date}<br>
+          <b>Venue:</b>${d.venue}
         `;
-      } else { res.innerHTML="Certificate not found"; }
+      } else { res.innerHTML="❌ Certificate not found"; }
     })
-    .catch(()=>res.innerHTML="Server error");
+    .catch(()=>res.innerHTML="❌ Server error");
 }
 
 /* QR SCANNER */
@@ -188,33 +188,50 @@ function toggleAdminLogin(){ document.getElementById("adminPanel").style.display
 
 function loginAdmin(){
   const pw=document.getElementById("adminPassword").value;
-  if(pw==="primedadmin123"){ // simple password
+  if(pw==="primedadmin123"){
     adminLoggedIn=true;
     document.getElementById("adminActions").style.display="block";
     alert("Admin logged in");
   } else { alert("Wrong password"); }
 }
 
-function loadTrainees(){
-  fetch(API_URL+"?action=list").then(r=>r.json()).then(data=>{
-    const listDiv=document.getElementById("traineeList");
-    listDiv.innerHTML="<table><tr><th>#</th><th>Name</th><th>Certificate</th><th>Training</th><th>Date</th><th>Venue</th><th>Actions</th></tr>";
-    data.forEach((t,i)=>{
-      listDiv.innerHTML += `<tr>
-        <td>${i+1}</td>
-        <td>${t.name}</td>
-        <td>${t.certificate}</td>
-        <td>${t.training}</td>
-        <td>${t.date}</td>
-        <td>${t.venue}</td>
-        <td>
-          <button onclick="editTrainee(${i})">Edit</button>
-          <button onclick="deleteTrainee(${i})">Delete</button>
-        </td>
-      </tr>`;
+/* Optimized Load Trainees */
+function loadTrainees() {
+  fetch(API_URL + "?action=list")
+    .then(r => r.json())
+    .then(data => {
+      const listDiv=document.getElementById("traineeList");
+      listDiv.innerHTML="";
+      const table=document.createElement("table");
+      const thead=document.createElement("thead");
+      thead.innerHTML="<tr><th>#</th><th>Name</th><th>Certificate</th><th>Training</th><th>Date</th><th>Venue</th><th>Actions</th></tr>";
+      table.appendChild(thead);
+      const tbody=document.createElement("tbody");
+      data.forEach((t,i)=>{
+        const tr=document.createElement("tr");
+        tr.innerHTML=`
+          <td>${i+1}</td>
+          <td>${t.name}</td>
+          <td>${t.certificate}</td>
+          <td>${t.training}</td>
+          <td>${t.date}</td>
+          <td>${t.venue}</td>
+          <td>
+            <button data-index="${i}" class="editBtn">Edit</button>
+            <button data-index="${i}" class="delBtn">Delete</button>
+          </td>`;
+        tbody.appendChild(tr);
+      });
+      table.appendChild(tbody);
+      listDiv.appendChild(table);
+
+      listDiv.querySelectorAll(".editBtn").forEach(btn=>{
+        btn.addEventListener("click",()=>editTrainee(btn.dataset.index));
+      });
+      listDiv.querySelectorAll(".delBtn").forEach(btn=>{
+        btn.addEventListener("click",()=>deleteTrainee(btn.dataset.index));
+      });
     });
-    listDiv.innerHTML += "</table>";
-  });
 }
 
 function showAddForm(){ document.getElementById("addForm").style.display="block"; }
@@ -230,7 +247,11 @@ function addTrainee(){
   };
   fetch(API_URL+"?action=add", { method:"POST", body: JSON.stringify(payload) })
   .then(r=>r.json()).then(d=>{
-    if(d.success){ alert("Added"); document.getElementById("addForm").reset; loadTrainees(); }
+    if(d.success){ 
+      alert("Added"); 
+      document.getElementById("addForm").reset; 
+      loadTrainees(); 
+    }
     else alert("Failed");
   });
 }
@@ -274,6 +295,5 @@ function deleteTrainee(index){
   }
 }
 </script>
-
 </body>
 </html>
