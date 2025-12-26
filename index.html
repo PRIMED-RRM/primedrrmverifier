@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PRIMED Risk Reduction Management Training Services Certificate Verifier</title>
+<title>PRIMED CERTIFICATE VERIFIER</title>
 <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/jsqr/dist/jsQR.js"></script>
 
@@ -187,7 +187,7 @@ function verify(cert){
   const filter=document.getElementById("trainingFilter").value;
   const res=document.getElementById("result");
 
-  if(!c){ res.innerHTML="❌ Enter certificate number"; return; }
+  if(!c){ res.innerHTML=" PLEASE ENTER YOUR CERTIFICATE NUMBER ❌"; return; }
   res.innerHTML="Verifying…";
 
   fetch(API_URL+"?cert="+encodeURIComponent(c))
@@ -195,7 +195,7 @@ function verify(cert){
     .then(d=>{
       if(d.found){
         if(filter && d.training!==filter){
-          res.innerHTML="❌ Training does not match selected filter";
+          res.innerHTML="TRAINING DOES NOT MATCH THE SELECTED FILTER ❌";
           return;
         }
         beep.play();
@@ -204,17 +204,17 @@ function verify(cert){
         res.innerHTML=`
           <b style="color:green">CERTIFICATE VERIFIED ✅</b><br><br>
           <b>Name:</b> ${d.name}<br>
-          <b>Certificate #:</b> ${d.certificate}<br>
-          <b>Training:</b> ${d.training}<br>
-          <b>Date:</b> ${dateOnly}<br>
-          <b>Venue:</b> ${d.venue}<br><br>
+          <b>Certificate Number:</b> ${d.certificate}<br>
+          <b>Type of Training:</b> ${d.training}<br>
+          <b>Training Date:</b> ${dateOnly}<br>
+          <b>Traing Venue:</b> ${d.venue}<br><br>
           <button onclick="copyLink('${certLink}')">Copy Certificate Link</button>
         `;
       }else{
-        res.innerHTML="❌ Certificate not found";
+        res.innerHTML="CERTIFICATE NO VALID ❌";
       }
     })
-    .catch(()=>res.innerHTML="❌ Server error");
+    .catch(()=>res.innerHTML="SERVER ERROR ❌");
 }
 
 /* COPY LINK FUNCTION */
@@ -249,7 +249,7 @@ function toggleScanner(){
       scanning=true;
       video.onloadedmetadata=()=>{ video.play(); scanLoop(); };
     })
-    .catch(()=>{ document.getElementById("result").innerHTML="❌ Camera access denied"; });
+    .catch(()=>{ document.getElementById("result").innerHTML="CAMERA ACCESS DENIED ❌"; });
 }
 
 function scanLoop(){
