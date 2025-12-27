@@ -78,7 +78,7 @@ function login() {
     return;
   }
 
-  // Call the Web App to verify PIN
+  // Call the Web App to verify PIN 
   fetch(`${API_URL}?login=1&pin=${encodeURIComponent(pinValue)}`)
     .then(res => res.json())
     .then(data => {
