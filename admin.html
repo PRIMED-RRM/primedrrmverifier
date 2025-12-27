@@ -1,164 +1,178 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
 <meta charset="UTF-8">
-<title>PRIMED Admin Panel</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
+<title>PRIMED Admin Dashboard</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
-<script src="https://unpkg.com/html5-qrcode"></script>
 
 <style>
-body{
-  font-family:Roboto;
-  background:#0f172a;
-  color:#e5e7eb;
-  margin:0;
-}
-.container{
-  max-width:420px;
-  margin:auto;
-  padding:20px;
-}
-.card{
-  background:#020617;
-  padding:20px;
-  border-radius:12px;
-  box-shadow:0 0 15px rgba(0,0,0,.4);
-}
-input,button,select{
-  width:100%;
-  padding:12px;
-  margin-top:10px;
-  border-radius:8px;
-  border:none;
-  font-size:15px;
-}
-button{
-  background:#16a34a;
-  color:#fff;
-  font-weight:600;
-  cursor:pointer;
-}
-button.secondary{
-  background:#334155;
-}
-.hidden{display:none}
-.status{
-  margin-top:15px;
-  padding:10px;
-  border-radius:8px;
-  font-weight:500;
-}
-.success{background:#064e3b}
-.error{background:#7f1d1d}
+body{font-family:Roboto;background:#020617;color:#e5e7eb;margin:0}
+.container{max-width:1200px;margin:auto;padding:20px}
+h2,h3{margin:10px 0}
+.card{background:#020617;border:1px solid #1e293b;border-radius:14px;padding:16px;margin-bottom:20px}
+.flex{display:flex;gap:14px;flex-wrap:wrap}
+.stat{flex:1;background:#020617;border:1px solid #1e293b;border-radius:12px;padding:16px;text-align:center}
+.stat b{font-size:22px}
+input,select,button{padding:10px;border-radius:8px;border:none}
+button{cursor:pointer;font-weight:600}
+.green{background:#16a34a;color:#fff}
+.red{background:#7f1d1d;color:#fff}
+.gray{background:#334155;color:#fff}
+.blue{background:#2563eb;color:#fff}
+table{width:100%;border-collapse:collapse}
+th,td{padding:8px;border-bottom:1px solid #334155;font-size:14px}
+th{background:#020617}
+tr:hover{background:#020617}
+.scroll{max-height:320px;overflow:auto}
+.badge{padding:4px 10px;border-radius:999px;font-size:12px;font-weight:600}
+.active{background:#16a34a;color:#fff}
+.expired{background:#7f1d1d;color:#fff}
+.bar{height:10px;background:#2563eb;border-radius:6px;margin-top:6px}
 </style>
 </head>
 
 <body>
 <div class="container">
 
-<!-- LOGIN -->
-<div class="card" id="loginCard">
-<h3>🔐 ADMIN LOGIN</h3>
-<input type="password" id="adminPass" placeholder="Enter Admin Password">
-<button onclick="login()">Login</button>
-<div id="loginMsg" class="status hidden"></div>
+<h2>📊 PRIMED ADMIN DASHBOARD</h2>
+
+<!-- DASHBOARD STATS -->
+<div class="flex">
+  <div class="stat" id="totalBox">Total Trainees<br><b>0</b></div>
+  <div class="stat" id="activeBox">Active<br><b>0</b></div>
+  <div class="stat" id="expiredBox">Expired<br><b>0</b></div>
 </div>
 
-<!-- ADMIN PANEL -->
-<div class="card hidden" id="adminPanel">
-<h3>📷 QR SCAN CERTIFICATE</h3>
+<!-- TRAINING ANALYTICS -->
+<div class="card">
+<h3>📊 Training Analytics</h3>
+<div id="analytics"></div>
+</div>
 
-<div id="reader" style="width:100%"></div>
+<!-- ADD TRAINEE -->
+<div class="card">
+<h3>➕ Add Trainee</h3>
+<div class="flex">
+<input id="name" placeholder="Name">
+<input id="cert" placeholder="Certificate #">
+<input id="training" placeholder="Training">
+<input id="venue" placeholder="Venue">
+<input id="date" type="date">
+<button class="green" onclick="add()">Add</button>
+</div>
+</div>
 
-<input id="manualCert" placeholder="Or enter certificate number">
-<button onclick="verifyAdmin()">Verify</button>
-<button class="secondary" onclick="logout()">Logout</button>
-
-<div id="adminResult" class="status"></div>
+<!-- TRAINEE TABLE -->
+<div class="card">
+<h3>📋 Trainees List</h3>
+<div class="scroll">
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Certificate</th>
+<th>Training</th>
+<th>Date</th>
+<th>Status</th>
+<th></th>
+</tr>
+</thead>
+<tbody id="tbody"></tbody>
+</table>
+</div>
 </div>
 
 </div>
 
 <script>
-const API_URL = "https://script.google.com/macros/s/AKfycbzKD0Z8iehv0op_Wg_yGo9ro9kumHDYqTdYXYNUE1sY3vtiXVzENrwOdga3n2kETWdL/exec";
-const ADMIN_PASSWORD = "primed";
+const API_URL = "https://script.google.com/macros/s/AKfycbx8EtodLf24O-PHlCXaxGc0PkiXfCsCE15tFU5Zz-IrE1fI9EenJMrOzxyDQGy3DDliQg/exec";
 
-let scanner;
-
-function login(){
-  const p = document.getElementById("adminPass").value;
-  const msg = document.getElementById("loginMsg");
-
-  if(p === ADMIN_PASSWORD){
-    document.getElementById("loginCard").classList.add("hidden");
-    document.getElementById("adminPanel").classList.remove("hidden");
-    startScanner();
-  }else{
-    msg.textContent = "INVALID PASSWORD ❌";
-    msg.className = "status error";
-    msg.classList.remove("hidden");
-  }
+function getStatus(dateStr){
+  if(!dateStr) return "EXPIRED";
+  const d = new Date(dateStr);
+  const now = new Date();
+  const diff = (now - d) / (1000*60*60*24);
+  return diff <= 365 ? "ACTIVE" : "EXPIRED";
 }
 
-function logout(){
-  location.reload();
-}
+function load(){
+ fetch(API_URL)
+  .then(r=>r.json())
+  .then(data=>{
+    data.reverse();
 
-function startScanner(){
-  scanner = new Html5Qrcode("reader");
-  scanner.start(
-    { facingMode:"environment" },
-    { fps:10, qrbox:250 },
-    txt=>{
-      scanner.stop();
-      document.getElementById("manualCert").value = txt;
-      verifyAdmin();
-    }
-  );
-}
+    let active=0, expired=0;
+    const trainingCount={};
 
-function verifyAdmin(){
-  const cert = document.getElementById("manualCert").value.trim().toUpperCase();
-  const res = document.getElementById("adminResult");
-
-  if(!cert){
-    res.textContent = "ENTER CERTIFICATE NUMBER ❌";
-    res.className="status error";
-    return;
-  }
-
-  res.textContent = "Verifying…";
-
-  fetch(API_URL)
-    .then(r=>r.json())
-    .then(data=>{
-      const rec = data.find(x =>
-        x.certificate &&
-        x.certificate.toUpperCase().trim() === cert
-      );
-
-      if(!rec){
-        res.textContent = "CERTIFICATE NOT FOUND ❌";
-        res.className="status error";
-        return;
-      }
-
-      res.innerHTML = `
-        <b>VALID CERTIFICATE ✅</b><br><br>
-        Name: ${rec.name}<br>
-        Training: ${rec.training}<br>
-        Date: ${rec.date}<br>
-        Venue: ${rec.venue}
-      `;
-      res.className="status success";
-    })
-    .catch(()=>{
-      res.textContent = "SERVER ERROR ❌";
-      res.className="status error";
+    data.forEach(x=>{
+      const status=getStatus(x.date);
+      status==="ACTIVE" ? active++ : expired++;
+      trainingCount[x.training]=(trainingCount[x.training]||0)+1;
     });
+
+    totalBox.innerHTML=`Total Trainees<br><b>${data.length}</b>`;
+    activeBox.innerHTML=`Active<br><b>${active}</b>`;
+    expiredBox.innerHTML=`Expired<br><b>${expired}</b>`;
+
+    // ANALYTICS
+    analytics.innerHTML="";
+    Object.keys(trainingCount).forEach(t=>{
+      const count=trainingCount[t];
+      analytics.innerHTML+=`
+        <div>
+          <b>${t}</b> (${count})
+          <div class="bar" style="width:${count*20}px"></div>
+        </div><br>
+      `;
+    });
+
+    // TABLE
+    tbody.innerHTML="";
+    data.forEach(x=>{
+      const status=getStatus(x.date);
+      tbody.innerHTML+=`
+      <tr>
+        <td>${x.name}</td>
+        <td>${x.certificate}</td>
+        <td>${x.training}</td>
+        <td>${x.date||""}</td>
+        <td>
+          <span class="badge ${status==="ACTIVE"?"active":"expired"}">
+            ${status}
+          </span>
+        </td>
+        <td>
+          <button class="red" onclick="del('${x.certificate}')">Delete</button>
+        </td>
+      </tr>`;
+    });
+  });
 }
+
+function add(){
+ fetch(API_URL,{
+  method:"POST",
+  body:JSON.stringify({
+    action:"add",
+    name:name.value,
+    certificate:cert.value,
+    training:training.value,
+    venue:venue.value,
+    date:date.value
+  })
+ }).then(()=>load());
+}
+
+function del(cert){
+ if(!confirm("Delete this trainee?")) return;
+ fetch(API_URL,{
+  method:"POST",
+  body:JSON.stringify({action:"delete",certificate:cert})
+ }).then(()=>load());
+}
+
+load();
 </script>
 </body>
 </html>
