@@ -2,149 +2,163 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<title>PRIMED Admin Panel</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PRIMED ADMIN PANEL</title>
+
 <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/html5-qrcode"></script>
 
 <style>
 body{
-  font-family:Roboto,sans-serif;
-  background:linear-gradient(180deg,#eef3f9,#f9fbfd);
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  min-height:100vh;
+  font-family:Roboto;
+  background:#0f172a;
+  color:#e5e7eb;
   margin:0;
 }
 .container{
-  background:#fff;
-  padding:26px;
-  border-radius:14px;
-  width:95%;
-  max-width:480px;
-  box-shadow:0 8px 28px rgba(0,0,0,.15);
-  text-align:center;
+  max-width:420px;
+  margin:auto;
+  padding:20px;
 }
-.logos{
-  display:flex;
-  justify-content:center;
-  gap:14px;
+.card{
+  background:#020617;
+  padding:20px;
+  border-radius:12px;
+  box-shadow:0 0 15px rgba(0,0,0,.4);
 }
-.logos img{width:75px}
-
-h2{
-  margin:10px 0 4px;
-  color:#0d6efd;
-  font-size:20px;
-  font-weight:700;
-  text-transform:uppercase;
-}
-
-input,select,button{
-  width:90%;
-  padding:10px;
-  margin-bottom:10px;
+input,button,select{
+  width:100%;
+  padding:12px;
+  margin-top:10px;
   border-radius:8px;
-  border:1px solid #ccc;
+  border:none;
+  font-size:15px;
 }
-
 button{
+  background:#16a34a;
+  color:#fff;
+  font-weight:600;
   cursor:pointer;
 }
-
-.primary{background:#0d6efd;color:#fff}
-.update{background:#198754;color:#fff}
-.delete{background:#dc3545;color:#fff}
-
-#status{
-  margin-top:12px;
-  font-size:14px;
-  text-align:left;
-  background:#f3f6fb;
-  padding:12px;
-  border-radius:10px;
+button.secondary{
+  background:#334155;
 }
+.hidden{display:none}
+.status{
+  margin-top:15px;
+  padding:10px;
+  border-radius:8px;
+  font-weight:500;
+}
+.success{background:#064e3b}
+.error{background:#7f1d1d}
 </style>
 </head>
+
 <body>
 <div class="container">
 
-<div class="logos">
-  <img src="https://raw.githubusercontent.com/PRIMED-RRM/primedrrmverifier/refs/heads/main/PRIMED%20Logo%201.png">
-  <img src="https://raw.githubusercontent.com/PRIMED-RRM/primedrrmverifier/refs/heads/main/BackgroundEraser_20251102_093006990.png">
+<!-- LOGIN -->
+<div class="card" id="loginCard">
+<h3>🔐 ADMIN LOGIN</h3>
+<input type="password" id="adminPass" placeholder="Enter Admin Password">
+<button onclick="login()">Login</button>
+<div id="loginMsg" class="status hidden"></div>
 </div>
 
-<h2>ADMIN PANEL</h2>
+<!-- ADMIN PANEL -->
+<div class="card hidden" id="adminPanel">
+<h3>📷 QR SCAN CERTIFICATE</h3>
 
-<input type="text" id="name" placeholder="Full Name">
-<input type="text" id="certificate" placeholder="Certificate Number">
-<select id="training">
-  <option value="STOP THE BLEED">Stop The Bleed</option>
-  <option value="Standard First Aid">SFAT</option>
-  <option value="Basic First Aid">BFAT</option>
-  <option value="Basic Life Support">BLS</option>
-  <option value="CPR">CPR</option>
-  <option value="Basic Fire Safety Seminar">Basic Fire Safety Seminar</option>
-  <option value="Introduction to DRRM">Introduction to DRRM</option>
-  <option value="Earthquake Preparedness Seminar">Earthquake Preparedness Seminar</option>
-</select>
-<input type="text" id="venue" placeholder="Training Venue">
-<input type="date" id="date">
+<div id="reader" style="width:100%"></div>
 
-<div>
-  <button class="primary" onclick="addTrainee()">Add Trainee</button>
-  <button class="update" onclick="updateTrainee()">Update Trainee</button>
-  <button class="delete" onclick="deleteTrainee()">Delete Trainee</button>
+<input id="manualCert" placeholder="Or enter certificate number">
+<button onclick="verifyAdmin()">Verify</button>
+<button class="secondary" onclick="logout()">Logout</button>
+
+<div id="adminResult" class="status"></div>
 </div>
 
-<div id="status"></div>
-
-<footer style="margin-top:14px; font-size:12px; color:#666;">This admin panel is connected to PRIMED records only</footer>
+</div>
 
 <script>
 const API_URL = "https://script.google.com/macros/s/AKfycbzKD0Z8iehv0op_Wg_yGo9ro9kumHDYqTdYXYNUE1sY3vtiXVzENrwOdga3n2kETWdL/exec";
+const ADMIN_PASSWORD = "PRIMED-ADMIN-2025";
 
-function postAction(action, body){
-  body.action = action;
-  fetch(API_URL,{
-    method:"POST",
-    body:JSON.stringify(body)
-  }).then(r=>r.json()).then(d=>{
-    document.getElementById("status").innerHTML = JSON.stringify(d);
-  }).catch(()=>document.getElementById("status").innerHTML="SERVER ERROR ❌");
+let scanner;
+
+function login(){
+  const p = document.getElementById("adminPass").value;
+  const msg = document.getElementById("loginMsg");
+
+  if(p === ADMIN_PASSWORD){
+    document.getElementById("loginCard").classList.add("hidden");
+    document.getElementById("adminPanel").classList.remove("hidden");
+    startScanner();
+  }else{
+    msg.textContent = "INVALID PASSWORD ❌";
+    msg.className = "status error";
+    msg.classList.remove("hidden");
+  }
 }
 
-function addTrainee(){
-  const body={
-    name:document.getElementById("name").value,
-    certificate:document.getElementById("certificate").value,
-    training:document.getElementById("training").value,
-    venue:document.getElementById("venue").value,
-    date:document.getElementById("date").value
-  };
-  postAction("add", body);
+function logout(){
+  location.reload();
 }
 
-function updateTrainee(){
-  const oldCert = prompt("Enter old certificate number to update:");
-  if(!oldCert) return;
-  const body={
-    oldCertificate:oldCert,
-    name:document.getElementById("name").value,
-    certificate:document.getElementById("certificate").value,
-    training:document.getElementById("training").value,
-    venue:document.getElementById("venue").value,
-    date:document.getElementById("date").value
-  };
-  postAction("update", body);
+function startScanner(){
+  scanner = new Html5Qrcode("reader");
+  scanner.start(
+    { facingMode:"environment" },
+    { fps:10, qrbox:250 },
+    txt=>{
+      scanner.stop();
+      document.getElementById("manualCert").value = txt;
+      verifyAdmin();
+    }
+  );
 }
 
-function deleteTrainee(){
-  const cert = prompt("Enter certificate number to delete:");
-  if(!cert) return;
-  postAction("delete",{certificate:cert});
+function verifyAdmin(){
+  const cert = document.getElementById("manualCert").value.trim().toUpperCase();
+  const res = document.getElementById("adminResult");
+
+  if(!cert){
+    res.textContent = "ENTER CERTIFICATE NUMBER ❌";
+    res.className="status error";
+    return;
+  }
+
+  res.textContent = "Verifying…";
+
+  fetch(API_URL)
+    .then(r=>r.json())
+    .then(data=>{
+      const rec = data.find(x =>
+        x.certificate &&
+        x.certificate.toUpperCase().trim() === cert
+      );
+
+      if(!rec){
+        res.textContent = "CERTIFICATE NOT FOUND ❌";
+        res.className="status error";
+        return;
+      }
+
+      res.innerHTML = `
+        <b>VALID CERTIFICATE ✅</b><br><br>
+        Name: ${rec.name}<br>
+        Training: ${rec.training}<br>
+        Date: ${rec.date}<br>
+        Venue: ${rec.venue}
+      `;
+      res.className="status success";
+    })
+    .catch(()=>{
+      res.textContent = "SERVER ERROR ❌";
+      res.className="status error";
+    });
 }
 </script>
-</div>
 </body>
 </html>
