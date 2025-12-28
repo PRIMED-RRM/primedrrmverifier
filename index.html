@@ -56,7 +56,13 @@ footer{font-size:12px;margin-top:14px;color:#666;}
 
 <footer>
 This verification is based solely on PRIMED records and is not government certification nor international accreditation/certification. 📝
+<br>
+© C<span id="year"></span> PRIMEDRRMTS & ACER-FRCI | All rights reserved.
 </footer>
+
+<script>
+document.getElementById("year").innerText = new Date().getFullYear();
+</script>
 
 <audio id="beep" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg" preload="auto"></audio>
 
