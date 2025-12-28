@@ -157,17 +157,52 @@ function addTrainee(){
 }
 
 /* 📋 LOAD LIST */
+<script>
 function loadTrainees(){
   fetch(API_URL + "?list=1")
-  .then(res=>res.json())
-  .then(data=>{
+  .then(res => res.json())
+  .then(data => {
+
+    // 🔧 SUPPORT ALL POSSIBLE BACKEND FORMATS
+    const trainees =
+      data.trainees || data.data || data.records || data;
+
     const tbody = document.getElementById("traineesBody");
     tbody.innerHTML = "";
 
-    if(!data.trainees || data.trainees.length===0){
+    if(!Array.isArray(trainees) || trainees.length === 0){
       tbody.innerHTML = "<tr><td colspan='7'>No trainees found</td></tr>";
       return;
     }
+
+    trainees.reverse(); // newest first
+
+    document.getElementById("totalTrainees").innerText = trainees.length;
+    document.getElementById("totalTrainings").innerText =
+      new Set(trainees.map(t=>t.training)).size;
+
+    trainees.forEach(t=>{
+      tbody.innerHTML += `
+        <tr>
+          <td>${t.name || ""}</td>
+          <td>${t.certificate || ""}</td>
+          <td>${t.training || ""}</td>
+          <td>${t.venue || ""}</td>
+          <td>${t.date || ""}</td>
+          <td><span class="badge">VALID</span></td>
+          <td>
+            <button class="delete-btn"
+              onclick="deleteTrainee('${t.certificate}')">Delete</button>
+          </td>
+        </tr>`;
+    });
+  })
+  .catch(err=>{
+    alert("LIST ERROR — check API");
+    console.error(err);
+  });
+}
+</script>
 
     // newest → oldest
     data.trainees.reverse();
