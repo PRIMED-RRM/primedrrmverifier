@@ -2,179 +2,214 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>PRIMED Admin Dashboard</title>
-<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/jsqr/dist/jsQR.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
-body{font-family:Roboto,sans-serif;margin:0;background:#f3f4f6;color:#111}
-header{background:#0d6efd;color:#fff;padding:14px;text-align:center;font-weight:700;font-size:18px}
-.container{padding:14px;max-width:1000px;margin:auto}
-input,select,button{padding:8px;margin:4px;border-radius:6px;border:1px solid #ccc;font-size:14px}
-button{cursor:pointer}
-.add-btn{background:#198754;color:#fff;border:none}
-.delete-btn{background:#dc3545;color:#fff;border:none}
-.logout-btn{background:#6c757d;color:#fff;border:none}
-table{width:100%;border-collapse:collapse;margin-top:12px}
-th,td{border:1px solid #ccc;padding:8px;text-align:left}
-th{background:#e5e7eb}
-.status-badge{padding:2px 6px;border-radius:4px;color:#fff;font-weight:500}
-.status-valid{background:#198754}
-.status-invalid{background:#dc3545}
-#scanner{display:none;margin-top:10px}
-video{width:100%;border-radius:8px}
+body{
+  font-family: Arial, sans-serif;
+  background:#f4f6f8;
+  margin:0;
+  padding:20px;
+}
+h1{margin-bottom:5px}
+.card{
+  background:#fff;
+  padding:15px;
+  border-radius:8px;
+  box-shadow:0 2px 6px rgba(0,0,0,.1);
+  margin-bottom:20px;
+}
+input,select,button{
+  padding:8px;
+  margin:5px 0;
+  width:100%;
+}
+button{
+  background:#111;
+  color:#fff;
+  border:none;
+  cursor:pointer;
+}
+button:hover{opacity:.85}
+table{
+  width:100%;
+  border-collapse:collapse;
+  margin-top:10px;
+}
+th,td{
+  border:1px solid #ddd;
+  padding:8px;
+  text-align:left;
+}
+th{
+  background:#222;
+  color:#fff;
+}
+.badge{
+  background:green;
+  color:white;
+  padding:3px 8px;
+  border-radius:12px;
+  font-size:12px;
+}
+.stats{
+  display:flex;
+  gap:15px;
+}
+.stat{
+  flex:1;
+  background:#111;
+  color:#fff;
+  padding:15px;
+  border-radius:8px;
+  text-align:center;
+}
+.delete-btn{
+  background:red;
+  padding:5px 10px;
+}
 </style>
 </head>
+
 <body>
 
-<header>
-PRIMED ADMIN DASHBOARD
-<button class="logout-btn" style="float:right;margin-right:10px;" onclick="logoutAdmin()">Logout</button>
-</header>
+<h1>PRIMED Admin Dashboard</h1>
+<p>Training Records Management</p>
 
-<div class="container">
-
-<h3>Add New Trainee</h3>
-<input type="text" id="name" placeholder="Full Name">
-<input type="text" id="certificate" placeholder="Certificate Number">
-<select id="training">
-  <option value="">Select Training</option>
-  <option value="STOP THE BLEED">Stop The Bleed</option>
-  <option value="Standard First Aid">Standard First Aid (SFAT)</option>
-  <option value="Basic First Aid">Basic First Aid (BFAT)</option>
-  <option value="Basic Life Support">Basic Life Support (BLS)</option>
-  <option value="CPR">CPR</option>
-  <option value="Basic Fire Safety Seminar">Basic Fire Safety Seminar</option>
-  <option value="Introduction to DRRM">Introduction to DRRM</option>
-  <option value="Earthquake Preparedness Seminar">Earthquake Preparedness Seminar</option>
-</select>
-<input type="text" id="venue" placeholder="Training Venue">
-<input type="date" id="date">
-<button class="add-btn" onclick="addTrainee()">Add Trainee</button>
-
-<h3>Trainees List</h3>
-<table id="traineeTable">
-  <thead>
-    <tr>
-      <th>#</th>
-      <th>Name</th>
-      <th>Certificate Number</th>
-      <th>Training</th>
-      <th>Venue</th>
-      <th>Date</th>
-      <th>Status</th>
-      <th>Action</th>
-    </tr>
-  </thead>
-  <tbody></tbody>
-</table>
-
-<h3>QR Scanner</h3>
-<button onclick="toggleScanner()">Toggle Scanner</button>
-<div id="scanner">
-  <video id="video" autoplay playsinline></video>
-  <canvas id="canvas" hidden></canvas>
+<!-- 📊 ANALYTICS -->
+<div class="stats">
+  <div class="stat">
+    <h2 id="totalTrainees">0</h2>
+    <p>Total Trainees</p>
+  </div>
+  <div class="stat">
+    <h2 id="totalTrainings">0</h2>
+    <p>Trainings Types</p>
+  </div>
 </div>
 
-<audio id="beep" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg" preload="auto"></audio>
+<!-- ➕ ADD TRAINEE -->
+<div class="card">
+<h3>➕ Add Trainee</h3>
+
+<input id="name" placeholder="Participant Name">
+<input id="certificate" placeholder="Certificate Number">
+<input id="training" placeholder="Training Type">
+<input id="venue" placeholder="Training Venue">
+<input id="date" type="date">
+
+<button onclick="addTrainee()">Add Trainee</button>
+</div>
+
+<!-- 📋 TRAINEES LIST -->
+<div class="card">
+<h3>📋 Trainees List</h3>
+
+<table>
+<thead>
+<tr>
+  <th>Name</th>
+  <th>Certificate #</th>
+  <th>Training</th>
+  <th>Venue</th>
+  <th>Date</th>
+  <th>Status</th>
+  <th>Action</th>
+</tr>
+</thead>
+<tbody id="traineesBody"></tbody>
+</table>
 </div>
 
 <script>
-const API_URL="https://script.google.com/macros/s/AKfycbw6i1pzfj3N47h0Uk1V9hg9gkN_pgb31XWar4W6NBmklkwm1_-MGnoHlzZWoOnBEIGXtw/exec"; // <--- Palitan ng Web App URL mo
-const beep=document.getElementById("beep");
+/* 🔥 PASTE YOUR APPS SCRIPT WEB APP URL HERE */
+const API_URL = "https://script.google.com/macros/s/AKfycbwR761OUftq--nN23Ll6RGItQXYMAnJgDAXZWSjUVRDVqw8F1gxT2n45xnZMC4WyymoxQ/exec";
 
-// Check if admin is logged in
-if(localStorage.getItem("primed_admin")!=="yes"){ window.location.href="admin.html"; }
+/* ➕ ADD */
+function addTrainee(){
+  const data = {
+    name: name.value,
+    certificate: certificate.value,
+    training: training.value,
+    venue: venue.value,
+    date: date.value
+  };
 
-// Fetch and display trainees
-function fetchTrainees(){
-  fetch(API_URL+"?list=1")
-    .then(r=>r.json())
-    .then(d=>{
-      const tbody=document.querySelector("#traineeTable tbody");
-      tbody.innerHTML="";
-      d.trainees.sort((a,b)=>new Date(b.date)-new Date(a.date))
-       .forEach((t,i)=>{
-        const row=document.createElement("tr");
-        row.innerHTML=`
-          <td>${i+1}</td>
+  if(!data.name || !data.certificate){
+    alert("Name and Certificate required");
+    return;
+  }
+
+  fetch(API_URL + "?add=1",{
+    method:"POST",
+    body: JSON.stringify(data)
+  })
+  .then(res=>res.json())
+  .then(r=>{
+    if(r.success){
+      alert("Trainee Added");
+      loadTrainees();
+    }else{
+      alert("Error adding trainee");
+    }
+  });
+}
+
+/* 📋 LOAD LIST */
+function loadTrainees(){
+  fetch(API_URL + "?list=1")
+  .then(res=>res.json())
+  .then(data=>{
+    const tbody = document.getElementById("traineesBody");
+    tbody.innerHTML = "";
+
+    if(!data.trainees || data.trainees.length===0){
+      tbody.innerHTML = "<tr><td colspan='7'>No trainees found</td></tr>";
+      return;
+    }
+
+    // newest → oldest
+    data.trainees.reverse();
+
+    document.getElementById("totalTrainees").innerText = data.trainees.length;
+    document.getElementById("totalTrainings").innerText =
+      new Set(data.trainees.map(t=>t.training)).size;
+
+    data.trainees.forEach(t=>{
+      tbody.innerHTML += `
+        <tr>
           <td>${t.name}</td>
           <td>${t.certificate}</td>
           <td>${t.training}</td>
           <td>${t.venue}</td>
           <td>${t.date}</td>
-          <td><span class="status-badge ${t.valid?'status-valid':'status-invalid'}">${t.valid?'VALID':'INVALID'}</span></td>
-          <td><button class="delete-btn" onclick="deleteTrainee('${t.certificate}')">Delete</button></td>
-        `;
-        tbody.appendChild(row);
-      });
+          <td><span class="badge">VALID</span></td>
+          <td>
+            <button class="delete-btn"
+              onclick="deleteTrainee('${t.certificate}')">Delete</button>
+          </td>
+        </tr>`;
     });
+  });
 }
 
-// Add trainee
-function addTrainee(){
-  const data={
-    name:document.getElementById("name").value,
-    certificate:document.getElementById("certificate").value,
-    training:document.getElementById("training").value,
-    venue:document.getElementById("venue").value,
-    date:document.getElementById("date").value
-  };
-  fetch(API_URL+"?add=1&data="+encodeURIComponent(JSON.stringify(data)))
-    .then(r=>r.json())
-    .then(d=>{
-      if(d.success){
-        alert("Trainee added!");
-        fetchTrainees();
-      } else alert("Failed to add trainee");
-    });
-}
-
-// Delete trainee
+/* 🗑 DELETE */
 function deleteTrainee(cert){
-  if(!confirm("Are you sure you want to delete this trainee?")) return;
-  fetch(API_URL+"?delete=1&cert="+encodeURIComponent(cert))
-    .then(r=>r.json())
-    .then(d=>{
-      if(d.success){
-        alert("Trainee deleted!");
-        fetchTrainees();
-      } else alert("Failed to delete");
-    });
+  if(!confirm("Delete this trainee?")) return;
+
+  fetch(API_URL + "?delete=1&cert=" + encodeURIComponent(cert))
+  .then(res=>res.json())
+  .then(r=>{
+    if(r.success){
+      loadTrainees();
+    }else{
+      alert("Delete failed");
+    }
+  });
 }
 
-// Logout
-function logoutAdmin(){
-  localStorage.removeItem("primed_admin");
-  window.location.href="admin.html";
-}
-
-// QR Scanner
-let stream=null, scanning=false;
-function toggleScanner(){
-  const scanner=document.getElementById("scanner");
-  const video=document.getElementById("video");
-  if(scanning){ stream.getTracks().forEach(t=>t.stop()); scanner.style.display="none"; scanning=false; return; }
-  navigator.mediaDevices.getUserMedia({video:{facingMode:"environment"}})
-    .then(s=>{ stream=s; video.srcObject=s; scanner.style.display="block"; scanning=true; video.onloadedmetadata=()=>{ video.play(); scanLoop(); }; })
-    .catch(()=>{ alert("Camera access denied"); });
-}
-
-function scanLoop(){
-  if(!scanning) return;
-  const video=document.getElementById("video");
-  const canvas=document.getElementById("canvas");
-  const ctx=canvas.getContext("2d");
-  canvas.width=video.videoWidth; canvas.height=video.videoHeight;
-  ctx.drawImage(video,0,0,canvas.width,canvas.height);
-  const img=ctx.getImageData(0,0,canvas.width,canvas.height);
-  const qr=jsQR(img.data, canvas.width, canvas.height);
-  if(qr){ beep.play(); alert("QR Scanned: "+qr.data); scanning=false; stream.getTracks().forEach(t=>t.stop()); return; }
-  requestAnimationFrame(scanLoop);
-}
-
-fetchTrainees();
+window.onload = loadTrainees;
 </script>
 
 </body>
