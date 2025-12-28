@@ -13,7 +13,7 @@ body{font-family:Roboto,sans-serif;background:linear-gradient(180deg,#eef3f9,#f9
 .logos img{width:75px}
 h2{margin:10px 0;color:#0d6efd;font-size:20px;font-weight:700;text-transform:uppercase;}
 select,input,button{width:100%;padding:10px;margin-bottom:10px;border-radius:8px;border:1px solid #ccc;}
-button{background:#0d6efd;color:#fff;border:none;font-weight:600;cursor:pointer;}
+button{background:#0d6efd;color:#fff;border:none;font-weight:600;cursor:pointer;margin-top:4px;}
 #scanner{display:none;margin-top:12px;} video{width:100%;border-radius:12px;}
 #result{margin-top:12px;background:#f3f6fb;padding:12px;border-radius:10px;font-size:14px;text-align:left;}
 footer{font-size:12px;margin-top:14px;color:#666;}
@@ -43,8 +43,8 @@ footer{font-size:12px;margin-top:14px;color:#666;}
 
 <input id="certInput" placeholder="ENTER YOUR CERTIFICATE NUMBER">
 <div>
-  <button onclick="verifyCert()">VERIFY ME</button>
-  <button onclick="toggleScanner()">SCAN QR 📷</button>
+  <button onclick="verifyCert()">VERIFY IT </button>
+  <button onclick="toggleScanner()">SCAN QR CODE </button>
 </div>
 
 <div id="scanner">
@@ -77,7 +77,7 @@ function verifyCert(cert){
   const filter = trainingFilter.value;
   const res = document.getElementById("result");
 
-  if(!c){ res.innerHTML="❌ PLEASE ENTER YOUR CERTIFICATE NUMBER ❌"; return; }
+  if(!c){ res.innerHTML="❌ PLEASE ENTER YOUR CERTIFICATE NUMBER"; return; }
 
   res.innerHTML="VERIFYING…";
 
@@ -107,14 +107,14 @@ function verifyCert(cert){
         <b>CERTIFICATE #:</b> ${d.certificate.toUpperCase()}<br>
         <b>TRAINING:</b> ${d.training.toUpperCase()}<br>
         <b>VENUE:</b> ${d.venue.toUpperCase()}<br>
-        <b>DATE:</b> ${formattedDate};
+        <b>DATE:</b> ${formattedDate}`;
 
       beep.play();
     })
     .catch(()=>{ beep.play(); res.innerHTML="❌ SERVER ERROR ❌"; });
 }
 
-/* QR SCANNER */
+/* QR SCANNER USING JSQR */
 let stream=null, scanning=false;
 function toggleScanner(){
   const video = document.getElementById("video");
@@ -135,7 +135,7 @@ function toggleScanner(){
       scanning=true;
       video.onloadedmetadata = ()=>{ video.play(); scanLoop(); };
     })
-    .catch(()=>alert("CAMERA ACCESS DENIED ❌"));
+    .catch(()=>alert("❌ CAMERA ACCESS DENIED ❌"));
 }
 
 function scanLoop(){
