@@ -2,14 +2,13 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>PRIMED Certificate Verifier</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PRIMED CERTIFICATE VERIFIER</title>
 <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
-
 <style>
 body{
   font-family:Roboto,sans-serif;
-  background:#eef3f9;
+  background:linear-gradient(180deg,#eef3f9,#f9fbfd);
   display:flex;
   justify-content:center;
   align-items:center;
@@ -18,18 +17,31 @@ body{
 }
 .container{
   background:#fff;
-  padding:24px;
+  padding:26px;
   border-radius:14px;
   width:95%;
-  max-width:420px;
+  max-width:480px;
   box-shadow:0 8px 28px rgba(0,0,0,.15);
   text-align:center;
 }
-h2{color:#0d6efd;margin-bottom:10px}
-input,select,button{
+.logos{
+  display:flex;
+  justify-content:center;
+  gap:14px;
+  margin-bottom:10px;
+}
+.logos img{width:75px}
+h2{
+  margin:10px 0;
+  color:#0d6efd;
+  font-size:20px;
+  font-weight:700;
+  text-transform:uppercase;
+}
+select,input,button{
   width:100%;
   padding:10px;
-  margin:6px 0;
+  margin-bottom:10px;
   border-radius:8px;
   border:1px solid #ccc;
 }
@@ -49,40 +61,45 @@ button{
   text-align:left;
 }
 footer{
-  margin-top:12px;
   font-size:12px;
+  margin-top:14px;
   color:#666;
 }
 </style>
 </head>
-
 <body>
 <div class="container">
+
+<div class="logos">
+  <img src="https://raw.githubusercontent.com/PRIMED-RRM/primedrrmverifier/main/PRIMED%20Logo%201.png">
+  <img src="https://raw.githubusercontent.com/PRIMED-RRM/primedrrmverifier/main/BackgroundEraser_20251102_093006990.png">
+</div>
 
 <h2>CERTIFICATE VERIFIER</h2>
 
 <select id="trainingFilter">
-  <option value="">All Trainings</option>
-  <option value="STOP THE BLEED">Stop the Bleed</option>
-  <option value="Standard First Aid">Standard First Aid</option>
-  <option value="Basic Life Support">BLS</option>
+  <option value="">ALL TRAININGS</option>
+  <option value="STOP THE BLEED">STOP THE BLEED</option>
+  <option value="STANDARD FIRST AID">STANDARD FIRST AID (SFAT)</option>
+  <option value="BASIC FIRST AID">BASIC FIRST AID (BFAT)</option>
+  <option value="BASIC LIFE SUPPORT">BASIC LIFE SUPPORT (BLS)</option>
   <option value="CPR">CPR</option>
+  <option value="BASIC FIRE SAFETY SEMINAR">BASIC FIRE SAFETY SEMINAR</option>
+  <option value="INTRODUCTION TO DRRM">INTRODUCTION TO DRRM</option>
+  <option value="EARTHQUAKE PREPAREDNESS SEMINAR">EARTHQUAKE PREPAREDNESS SEMINAR</option>
 </select>
 
-<input id="certInput" placeholder="Enter Certificate Number">
-
-<button onclick="verifyCert()">Verify</button>
+<input id="certInput" placeholder="ENTER YOUR CERTIFICATE NUMBER">
+<button onclick="verifyCert()">VERIFY ✅</button>
 
 <div id="result"></div>
 
 <footer>
-This verification is based on PRIMED records only.
+This verification is based solely on PRIMED records and is not government certification nor international accreditation/certification. 📝
 </footer>
 
-</div>
-
 <script>
-const API_URL = "https://script.google.com/macros/s/AKfycbzhSjZI7iaDGoShqTDZ_3mK6DsH2bG0hpU1KJKnPeBpDUIBa1p-3-z6KYdMSnieIQ8/exec";
+const API_URL="https://script.google.com/macros/s/AKfycbzhSjZI7iaDGoShqTDZ_3mK6DsH2bG0hpU1KJKnPeBpDUIBa1p-3-z6KYdMSnieIQ8/exec";
 
 function verifyCert(){
   const cert = certInput.value.trim();
@@ -90,38 +107,35 @@ function verifyCert(){
   const res = document.getElementById("result");
 
   if(!cert){
-    res.innerHTML="Please enter certificate number ❌";
+    res.innerHTML="❌ PLEASE ENTER YOUR CERTIFICATE NUMBER";
     return;
   }
 
-  res.innerHTML="Verifying...";
+  res.innerHTML="VERIFYING…";
 
-  fetch(API_URL + "?cert=" + encodeURIComponent(cert))
+  fetch(API_URL+"?cert="+encodeURIComponent(cert))
   .then(r=>r.json())
   .then(d=>{
     if(!d.found){
-      res.innerHTML="CERTIFICATE NOT VALID ❌";
+      res.innerHTML="❌ CERTIFICATE NOT VALID ❌";
+      return;
+    }
+    if(filter && d.training.toUpperCase() !== filter.toUpperCase()){
+      res.innerHTML="❌ TRAINING DOES NOT MATCH SELECTED FILTER ❌";
       return;
     }
 
-    if(filter && d.training !== filter){
-      res.innerHTML="Training does not match filter ❌";
-      return;
-    }
-
-    res.innerHTML=`
-      <b style="color:green">CERTIFICATE VERIFIED ✅</b><br><br>
-      <b>Name:</b> ${d.name}<br>
-      <b>Certificate #:</b> ${d.certificate}<br>
-      <b>Training:</b> ${d.training}<br>
-      <b>Venue:</b> ${d.venue}<br>
-      <b>Date:</b> ${d.date}
-    `;
+    res.innerHTML=`<b style="color:green">✅ CERTIFICATE VERIFIED ✅</b><br><br>
+      <b>NAME:</b> ${d.name.toUpperCase()}<br>
+      <b>CERTIFICATE #:</b> ${d.certificate.toUpperCase()}<br>
+      <b>TRAINING:</b> ${d.training.toUpperCase()}<br>
+      <b>VENUE:</b> ${d.venue.toUpperCase()}<br>
+      <b>DATE:</b> ${d.date}<br>
+      ✅`;
   })
-  .catch(()=>{
-    res.innerHTML="Server error ❌";
-  });
+  .catch(()=>res.innerHTML="❌ SERVER ERROR ❌");
 }
 </script>
+</div>
 </body>
 </html>
