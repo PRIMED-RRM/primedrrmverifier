@@ -4,247 +4,269 @@
 <meta charset="UTF-8">
 <title>PRIMED Admin Dashboard</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
 
 <style>
-body{
-  font-family: Arial, sans-serif;
-  background:#f4f6f8;
-  margin:0;
-  padding:20px;
+body {
+  font-family: Roboto, sans-serif;
+  margin: 0;
+  background: #f8f9fa;
+  padding: 16px;
 }
-h1{margin-bottom:5px}
-.card{
-  background:#fff;
-  padding:15px;
-  border-radius:8px;
-  box-shadow:0 2px 6px rgba(0,0,0,.1);
-  margin-bottom:20px;
+header {
+  background: #0d6efd;
+  color: white;
+  padding: 12px;
+  text-align: center;
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 16px;
 }
-input,select,button{
-  padding:8px;
-  margin:5px 0;
-  width:100%;
+.card {
+  background: white;
+  border-radius: 8px;
+  padding: 14px;
+  box-shadow: 0px 2px 6px rgba(0,0,0,0.1);
+  margin-bottom: 20px;
 }
-button{
-  background:#111;
-  color:#fff;
-  border:none;
-  cursor:pointer;
+input, select, button {
+  width: 100%;
+  padding: 8px;
+  margin: 6px 0;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-size: 14px;
 }
-button:hover{opacity:.85}
-table{
-  width:100%;
-  border-collapse:collapse;
-  margin-top:10px;
+button {
+  font-weight: 600;
+  cursor: pointer;
 }
-th,td{
-  border:1px solid #ddd;
-  padding:8px;
-  text-align:left;
+.add-btn {
+  background: #198754;
+  color: white;
+  border: none;
 }
-th{
-  background:#222;
-  color:#fff;
+.delete-btn {
+  background: #dc3545;
+  color: white;
+  border: none;
 }
-.badge{
-  background:green;
-  color:white;
-  padding:3px 8px;
-  border-radius:12px;
-  font-size:12px;
+.logout-btn {
+  position: absolute;
+  top: 12px;
+  right: 16px;
+  background: #6c757d;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
 }
-.stats{
-  display:flex;
-  gap:15px;
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
 }
-.stat{
-  flex:1;
-  background:#111;
-  color:#fff;
-  padding:15px;
-  border-radius:8px;
-  text-align:center;
+th, td {
+  border: 1px solid #dee2e6;
+  padding: 8px;
+  font-size: 14px;
+  text-align: left;
 }
-.delete-btn{
-  background:red;
-  padding:5px 10px;
+th {
+  background: #e9ecef;
+}
+.badge {
+  background: #198754;
+  color: white;
+  padding: 3px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+}
+.stats {
+  display: flex;
+  gap: 10px;
+}
+.stat {
+  flex: 1;
+  background: #0d6efd;
+  color: white;
+  text-align: center;
+  padding: 12px;
+  border-radius: 8px;
+}
+.stat h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
 }
 </style>
 </head>
 
 <body>
 
-<h1>PRIMED Admin Dashboard</h1>
-<p>Training Records Management</p>
+<header>
+  PRIMED ADMIN DASHBOARD
+  <button class="logout-btn" onclick="logoutAdmin()">Logout</button>
+</header>
 
-<!-- 📊 ANALYTICS -->
-<div class="stats">
+<div class="card stats">
   <div class="stat">
-    <h2 id="totalTrainees">0</h2>
+    <h3 id="totalTrainees">0</h3>
     <p>Total Trainees</p>
   </div>
   <div class="stat">
-    <h2 id="totalTrainings">0</h2>
-    <p>Trainings Types</p>
+    <h3 id="totalTrainings">0</h3>
+    <p>Training Types</p>
   </div>
 </div>
 
-<!-- ➕ ADD TRAINEE -->
+<!-- ADD TRAINEE -->
 <div class="card">
-<h3>➕ Add Trainee</h3>
-
-<input id="name" placeholder="Participant Name">
-<input id="certificate" placeholder="Certificate Number">
-<input id="training" placeholder="Training Type">
-<input id="venue" placeholder="Training Venue">
-<input id="date" type="date">
-
-<button onclick="addTrainee()">Add Trainee</button>
+  <h3>Add New Trainee</h3>
+  <input id="name" placeholder="Full Name">
+  <input id="certificate" placeholder="Certificate Number">
+  <input id="training" placeholder="Training Type">
+  <input id="venue" placeholder="Venue">
+  <input id="date" type="date">
+  <button class="add-btn" onclick="addTrainee()">Add Trainee</button>
 </div>
 
-<!-- 📋 TRAINEES LIST -->
+<!-- TRAINEES LIST -->
 <div class="card">
-<h3>📋 Trainees List</h3>
-
-<table>
-<thead>
-<tr>
-  <th>Name</th>
-  <th>Certificate #</th>
-  <th>Training</th>
-  <th>Venue</th>
-  <th>Date</th>
-  <th>Status</th>
-  <th>Action</th>
-</tr>
-</thead>
-<tbody id="traineesBody"></tbody>
-</table>
+  <h3>Trainees List</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Name</th>
+        <th>Certificate #</th>
+        <th>Training</th>
+        <th>Venue</th>
+        <th>Date</th>
+        <th>Status</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody id="traineesBody"></tbody>
+  </table>
 </div>
 
 <script>
-/* 🔥 PASTE YOUR APPS SCRIPT WEB APP URL HERE */
+
+// ✨ Your apps script URL (same for admin + index)
 const API_URL = "https://script.google.com/macros/s/AKfycbw6i1pzfj3N47h0Uk1V9hg9gkN_pgb31XWar4W6NBmklkwm1_-MGnoHlzZWoOnBEIGXtw/exec";
 
-/* ➕ ADD */
+// 🛡 Protect dashboard (requires admin login)
+if(localStorage.getItem("primed_admin") !== "yes") {
+  window.location.href = "admin.html";
+}
+
+// ============ LIST TRAINEES ============
+
+function loadTrainees(){
+  fetch(API_URL + "?list=1")
+  .then(res=>res.json())
+  .then(data=>{
+    const tbody = document.getElementById("traineesBody");
+    tbody.innerHTML = "";
+
+    // make sure we get array
+    const list = data.trainees || data.data || [];
+
+    if(list.length === 0){
+      tbody.innerHTML = `<tr><td colspan="8">No trainees found</td></tr>`;
+      document.getElementById("totalTrainees").innerText = "0";
+      document.getElementById("totalTrainings").innerText = "0";
+      return;
+    }
+
+    // newest first
+    list.reverse();
+
+    document.getElementById("totalTrainees").innerText = list.length;
+    document.getElementById("totalTrainings").innerText = new Set(list.map(t=>t.training)).size;
+
+    list.forEach((t,i) => {
+      tbody.innerHTML += `
+      <tr>
+        <td>${i+1}</td>
+        <td>${t.name || ""}</td>
+        <td>${t.certificate || ""}</td>
+        <td>${t.training || ""}</td>
+        <td>${t.venue || ""}</td>
+        <td>${t.date || ""}</td>
+        <td><span class="badge">VALID</span></td>
+        <td>
+          <button class="delete-btn" onclick="deleteTrainee('${t.certificate}')">Delete</button>
+        </td>
+      </tr>`;
+    });
+  })
+  .catch(err=>{
+    console.error("Failed to fetch trainees:", err);
+  });
+}
+
+// ============ ADD TRAINEE ============
+
 function addTrainee(){
   const data = {
-    name: name.value,
-    certificate: certificate.value,
-    training: training.value,
-    venue: venue.value,
+    name: name.value.trim(),
+    certificate: certificate.value.trim(),
+    training: training.value.trim(),
+    venue: venue.value.trim(),
     date: date.value
   };
 
   if(!data.name || !data.certificate){
-    alert("Name and Certificate required");
+    alert("Name and Certificate number are required.");
     return;
   }
 
-  fetch(API_URL + "?add=1",{
-    method:"POST",
+  fetch(API_URL + "?add=1", {
+    method: "POST",
     body: JSON.stringify(data)
   })
   .then(res=>res.json())
-  .then(r=>{
-    if(r.success){
-      alert("Trainee Added");
+  .then(resp=>{
+    if(resp.success){
+      alert("Trainee added!");
       loadTrainees();
-    }else{
-      alert("Error adding trainee");
+    } else {
+      alert("Failed to add trainee");
     }
-  });
-}
-
-/* 📋 LOAD LIST */
-<script>
-function loadTrainees(){
-  fetch(API_URL + "?list=1")
-  .then(res => res.json())
-  .then(data => {
-
-    // 🔧 SUPPORT ALL POSSIBLE BACKEND FORMATS
-    const trainees =
-      data.trainees || data.data || data.records || data;
-
-    const tbody = document.getElementById("traineesBody");
-    tbody.innerHTML = "";
-
-    if(!Array.isArray(trainees) || trainees.length === 0){
-      tbody.innerHTML = "<tr><td colspan='7'>No trainees found</td></tr>";
-      return;
-    }
-
-    trainees.reverse(); // newest first
-
-    document.getElementById("totalTrainees").innerText = trainees.length;
-    document.getElementById("totalTrainings").innerText =
-      new Set(trainees.map(t=>t.training)).size;
-
-    trainees.forEach(t=>{
-      tbody.innerHTML += `
-        <tr>
-          <td>${t.name || ""}</td>
-          <td>${t.certificate || ""}</td>
-          <td>${t.training || ""}</td>
-          <td>${t.venue || ""}</td>
-          <td>${t.date || ""}</td>
-          <td><span class="badge">VALID</span></td>
-          <td>
-            <button class="delete-btn"
-              onclick="deleteTrainee('${t.certificate}')">Delete</button>
-          </td>
-        </tr>`;
-    });
   })
-  .catch(err=>{
-    alert("LIST ERROR — check API");
-    console.error(err);
-  });
-}
-</script>
-
-    // newest → oldest
-    data.trainees.reverse();
-
-    document.getElementById("totalTrainees").innerText = data.trainees.length;
-    document.getElementById("totalTrainings").innerText =
-      new Set(data.trainees.map(t=>t.training)).size;
-
-    data.trainees.forEach(t=>{
-      tbody.innerHTML += `
-        <tr>
-          <td>${t.name}</td>
-          <td>${t.certificate}</td>
-          <td>${t.training}</td>
-          <td>${t.venue}</td>
-          <td>${t.date}</td>
-          <td><span class="badge">VALID</span></td>
-          <td>
-            <button class="delete-btn"
-              onclick="deleteTrainee('${t.certificate}')">Delete</button>
-          </td>
-        </tr>`;
-    });
-  });
+  .catch(()=>alert("Server error while adding"));
 }
 
-/* 🗑 DELETE */
+// ============ DELETE TRAINEE ============
+
 function deleteTrainee(cert){
   if(!confirm("Delete this trainee?")) return;
 
   fetch(API_URL + "?delete=1&cert=" + encodeURIComponent(cert))
   .then(res=>res.json())
-  .then(r=>{
-    if(r.success){
+  .then(resp=>{
+    if(resp.success){
       loadTrainees();
-    }else{
+    } else {
       alert("Delete failed");
     }
-  });
+  })
+  .catch(()=>alert("Server error while deleting"));
 }
 
+// ============ LOGOUT ============
+
+function logoutAdmin(){
+  localStorage.removeItem("primed_admin");
+  window.location.href = "admin.html";
+}
+
+// Auto load on page open
 window.onload = loadTrainees;
+
 </script>
 
 </body>
