@@ -2,126 +2,191 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>PRIMED Certificate Verifier</title>
+<title>PRIMED Admin Dashboard</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
 
 <style>
 body{
   font-family:Roboto,sans-serif;
-  background:#eef3f9;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  height:100vh;
+  background:#f4f6f9;
   margin:0;
+  padding:16px;
 }
-.container{
-  background:#fff;
-  padding:24px;
-  border-radius:14px;
-  width:95%;
-  max-width:420px;
-  box-shadow:0 8px 28px rgba(0,0,0,.15);
+header{
+  background:#0d6efd;
+  color:white;
+  padding:12px;
   text-align:center;
-}
-h2{color:#0d6efd;margin-bottom:10px}
-input,select,button{
-  width:100%;
-  padding:10px;
-  margin:6px 0;
+  font-size:18px;
   border-radius:8px;
+}
+.card{
+  background:white;
+  padding:14px;
+  border-radius:8px;
+  margin-top:14px;
+  box-shadow:0 2px 6px rgba(0,0,0,.1);
+}
+input,button{
+  width:100%;
+  padding:8px;
+  margin:6px 0;
+  border-radius:6px;
   border:1px solid #ccc;
 }
 button{
-  background:#0d6efd;
-  color:#fff;
-  border:none;
   font-weight:600;
   cursor:pointer;
 }
-#result{
-  margin-top:12px;
-  background:#f3f6fb;
-  padding:12px;
-  border-radius:10px;
-  font-size:14px;
-  text-align:left;
+.add{background:#198754;color:white;border:none}
+.delete{background:#dc3545;color:white;border:none}
+table{
+  width:100%;
+  border-collapse:collapse;
+  margin-top:10px;
 }
-footer{
-  margin-top:12px;
+th,td{
+  border:1px solid #ddd;
+  padding:6px;
+  font-size:13px;
+}
+th{background:#eee}
+.badge{
+  background:#198754;
+  color:white;
+  padding:3px 8px;
+  border-radius:12px;
   font-size:12px;
-  color:#666;
+}
+.stats{
+  display:flex;
+  gap:10px;
+}
+.stat{
+  flex:1;
+  background:#0d6efd;
+  color:white;
+  text-align:center;
+  padding:10px;
+  border-radius:8px;
 }
 </style>
 </head>
 
 <body>
-<div class="container">
 
-<h2>CERTIFICATE VERIFIER</h2>
+<header>PRIMED ADMIN DASHBOARD</header>
 
-<select id="trainingFilter">
-  <option value="">All Trainings</option>
-  <option value="STOP THE BLEED">Stop the Bleed</option>
-  <option value="Standard First Aid">Standard First Aid</option>
-  <option value="Basic Life Support">BLS</option>
-  <option value="CPR">CPR</option>
-</select>
+<div class="stats">
+  <div class="stat">
+    <h3 id="totalTrainees">0</h3>
+    <p>Total Trainees</p>
+  </div>
+  <div class="stat">
+    <h3 id="totalTrainings">0</h3>
+    <p>Training Types</p>
+  </div>
+</div>
 
-<input id="certInput" placeholder="Enter Certificate Number">
+<div class="card">
+<h3>Add Trainee</h3>
+<input id="name" placeholder="Full Name">
+<input id="certificate" placeholder="Certificate Number">
+<input id="training" placeholder="Training">
+<input id="venue" placeholder="Venue">
+<input id="date" type="date">
+<button class="add" onclick="addTrainee()">Add Trainee</button>
+</div>
 
-<button onclick="verifyCert()">Verify</button>
-
-<div id="result"></div>
-
-<footer>
-This verification is based on PRIMED records only.
-</footer>
-
+<div class="card">
+<h3>Trainees List</h3>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Name</th>
+<th>Certificate</th>
+<th>Training</th>
+<th>Venue</th>
+<th>Date</th>
+<th>Status</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody id="tbody"></tbody>
+</table>
 </div>
 
 <script>
-const API_URL = "https://script.google.com/macros/s/AKfycbzhSjZI7iaDGoShqTDZ_3mK6DsH2bG0hpU1KJKnPeBpDUIBa1p-3-z6KYdMSnieIQ8/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbzhSjZI7iaDGoShqTDZ_3mK6DsH2bG0hpU1KJKnPeBpDUIBa1p-3-z6KYdMSnieIQ8/execE";
 
-function verifyCert(){
-  const cert = certInput.value.trim();
-  const filter = trainingFilter.value;
-  const res = document.getElementById("result");
+// BASIC ADMIN GUARD
+if(localStorage.getItem("primed_admin")!=="yes"){
+  alert("Admin not logged in");
+  location.href="admin.html";
+}
 
-  if(!cert){
-    res.innerHTML="Please enter certificate number ❌";
-    return;
-  }
-
-  res.innerHTML="Verifying...";
-
-  fetch(API_URL + "?cert=" + encodeURIComponent(cert))
+function loadTrainees(){
+  fetch(API_URL+"?list=1")
   .then(r=>r.json())
   .then(d=>{
-    if(!d.found){
-      res.innerHTML="CERTIFICATE NOT VALID ❌";
-      return;
-    }
+    const list = d.trainees || [];
+    const tb = document.getElementById("tbody");
+    tb.innerHTML="";
 
-    if(filter && d.training !== filter){
-      res.innerHTML="Training does not match filter ❌";
-      return;
-    }
+    document.getElementById("totalTrainees").innerText=list.length;
+    document.getElementById("totalTrainings").innerText=
+      new Set(list.map(t=>t.training)).size;
 
-    res.innerHTML=`
-      <b style="color:green">CERTIFICATE VERIFIED ✅</b><br><br>
-      <b>Name:</b> ${d.name}<br>
-      <b>Certificate #:</b> ${d.certificate}<br>
-      <b>Training:</b> ${d.training}<br>
-      <b>Venue:</b> ${d.venue}<br>
-      <b>Date:</b> ${d.date}
-    `;
-  })
-  .catch(()=>{
-    res.innerHTML="Server error ❌";
+    list.reverse().forEach((t,i)=>{
+      tb.innerHTML+=`
+      <tr>
+        <td>${i+1}</td>
+        <td>${t.name}</td>
+        <td>${t.certificate}</td>
+        <td>${t.training}</td>
+        <td>${t.venue}</td>
+        <td>${t.date}</td>
+        <td><span class="badge">VALID</span></td>
+        <td><button class="delete" onclick="del('${t.certificate}')">Delete</button></td>
+      </tr>`;
+    });
   });
 }
+
+function addTrainee(){
+  const data={
+    name:name.value,
+    certificate:certificate.value,
+    training:training.value,
+    venue:venue.value,
+    date:date.value
+  };
+
+  fetch(API_URL,{
+    method:"POST",
+    body:JSON.stringify(data)
+  })
+  .then(r=>r.json())
+  .then(d=>{
+    if(d.success){
+      loadTrainees();
+      alert("Added");
+    }
+  });
+}
+
+function del(cert){
+  if(!confirm("Delete trainee?")) return;
+  fetch(API_URL+"?delete=1&cert="+encodeURIComponent(cert))
+  .then(r=>r.json())
+  .then(d=>{
+    if(d.success) loadTrainees();
+  });
+}
+
+window.onload=loadTrainees;
 </script>
 </body>
 </html>
