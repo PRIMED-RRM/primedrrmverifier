@@ -2,272 +2,126 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>PRIMED Admin Dashboard</title>
+<title>PRIMED Certificate Verifier</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
 
 <style>
-body {
-  font-family: Roboto, sans-serif;
-  margin: 0;
-  background: #f8f9fa;
-  padding: 16px;
+body{
+  font-family:Roboto,sans-serif;
+  background:#eef3f9;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height:100vh;
+  margin:0;
 }
-header {
-  background: #0d6efd;
-  color: white;
-  padding: 12px;
-  text-align: center;
-  font-size: 20px;
-  font-weight: 600;
-  margin-bottom: 16px;
+.container{
+  background:#fff;
+  padding:24px;
+  border-radius:14px;
+  width:95%;
+  max-width:420px;
+  box-shadow:0 8px 28px rgba(0,0,0,.15);
+  text-align:center;
 }
-.card {
-  background: white;
-  border-radius: 8px;
-  padding: 14px;
-  box-shadow: 0px 2px 6px rgba(0,0,0,0.1);
-  margin-bottom: 20px;
+h2{color:#0d6efd;margin-bottom:10px}
+input,select,button{
+  width:100%;
+  padding:10px;
+  margin:6px 0;
+  border-radius:8px;
+  border:1px solid #ccc;
 }
-input, select, button {
-  width: 100%;
-  padding: 8px;
-  margin: 6px 0;
-  border-radius: 6px;
-  border: 1px solid #ccc;
-  font-size: 14px;
+button{
+  background:#0d6efd;
+  color:#fff;
+  border:none;
+  font-weight:600;
+  cursor:pointer;
 }
-button {
-  font-weight: 600;
-  cursor: pointer;
+#result{
+  margin-top:12px;
+  background:#f3f6fb;
+  padding:12px;
+  border-radius:10px;
+  font-size:14px;
+  text-align:left;
 }
-.add-btn {
-  background: #198754;
-  color: white;
-  border: none;
-}
-.delete-btn {
-  background: #dc3545;
-  color: white;
-  border: none;
-}
-.logout-btn {
-  position: absolute;
-  top: 12px;
-  right: 16px;
-  background: #6c757d;
-  color: white;
-  border: none;
-  padding: 6px 12px;
-  border-radius: 6px;
-}
-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 10px;
-}
-th, td {
-  border: 1px solid #dee2e6;
-  padding: 8px;
-  font-size: 14px;
-  text-align: left;
-}
-th {
-  background: #e9ecef;
-}
-.badge {
-  background: #198754;
-  color: white;
-  padding: 3px 8px;
-  border-radius: 12px;
-  font-size: 12px;
-  font-weight: 500;
-}
-.stats {
-  display: flex;
-  gap: 10px;
-}
-.stat {
-  flex: 1;
-  background: #0d6efd;
-  color: white;
-  text-align: center;
-  padding: 12px;
-  border-radius: 8px;
-}
-.stat h3 {
-  margin: 0;
-  font-size: 18px;
-  font-weight: 700;
+footer{
+  margin-top:12px;
+  font-size:12px;
+  color:#666;
 }
 </style>
 </head>
 
 <body>
+<div class="container">
 
-<header>
-  PRIMED ADMIN DASHBOARD
-  <button class="logout-btn" onclick="logoutAdmin()">Logout</button>
-</header>
+<h2>CERTIFICATE VERIFIER</h2>
 
-<div class="card stats">
-  <div class="stat">
-    <h3 id="totalTrainees">0</h3>
-    <p>Total Trainees</p>
-  </div>
-  <div class="stat">
-    <h3 id="totalTrainings">0</h3>
-    <p>Training Types</p>
-  </div>
-</div>
+<select id="trainingFilter">
+  <option value="">All Trainings</option>
+  <option value="STOP THE BLEED">Stop the Bleed</option>
+  <option value="Standard First Aid">Standard First Aid</option>
+  <option value="Basic Life Support">BLS</option>
+  <option value="CPR">CPR</option>
+</select>
 
-<!-- ADD TRAINEE -->
-<div class="card">
-  <h3>Add New Trainee</h3>
-  <input id="name" placeholder="Full Name">
-  <input id="certificate" placeholder="Certificate Number">
-  <input id="training" placeholder="Training Type">
-  <input id="venue" placeholder="Venue">
-  <input id="date" type="date">
-  <button class="add-btn" onclick="addTrainee()">Add Trainee</button>
-</div>
+<input id="certInput" placeholder="Enter Certificate Number">
 
-<!-- TRAINEES LIST -->
-<div class="card">
-  <h3>Trainees List</h3>
-  <table>
-    <thead>
-      <tr>
-        <th>#</th>
-        <th>Name</th>
-        <th>Certificate #</th>
-        <th>Training</th>
-        <th>Venue</th>
-        <th>Date</th>
-        <th>Status</th>
-        <th>Action</th>
-      </tr>
-    </thead>
-    <tbody id="traineesBody"></tbody>
-  </table>
+<button onclick="verifyCert()">Verify</button>
+
+<div id="result"></div>
+
+<footer>
+This verification is based on PRIMED records only.
+</footer>
+
 </div>
 
 <script>
+const API_URL = "https://script.google.com/macros/s/AKfycbzhSjZI7iaDGoShqTDZ_3mK6DsH2bG0hpU1KJKnPeBpDUIBa1p-3-z6KYdMSnieIQ8/exec";
 
-// ✨ Your apps script URL (same for admin + index)
-const API_URL = "https://script.google.com/macros/s/AKfycbw6i1pzfj3N47h0Uk1V9hg9gkN_pgb31XWar4W6NBmklkwm1_-MGnoHlzZWoOnBEIGXtw/exec";
+function verifyCert(){
+  const cert = certInput.value.trim();
+  const filter = trainingFilter.value;
+  const res = document.getElementById("result");
 
-// 🛡 Protect dashboard (requires admin login)
-if(localStorage.getItem("primed_admin") !== "yes") {
-  window.location.href = "admin.html";
-}
-
-// ============ LIST TRAINEES ============
-
-function loadTrainees(){
-  fetch(API_URL + "?list=1")
-  .then(res=>res.json())
-  .then(data=>{
-    const tbody = document.getElementById("traineesBody");
-    tbody.innerHTML = "";
-
-    // make sure we get array
-    const list = data.trainees || data.data || [];
-
-    if(list.length === 0){
-      tbody.innerHTML = `<tr><td colspan="8">No trainees found</td></tr>`;
-      document.getElementById("totalTrainees").innerText = "0";
-      document.getElementById("totalTrainings").innerText = "0";
-      return;
-    }
-
-    // newest first
-    list.reverse();
-
-    document.getElementById("totalTrainees").innerText = list.length;
-    document.getElementById("totalTrainings").innerText = new Set(list.map(t=>t.training)).size;
-
-    list.forEach((t,i) => {
-      tbody.innerHTML += `
-      <tr>
-        <td>${i+1}</td>
-        <td>${t.name || ""}</td>
-        <td>${t.certificate || ""}</td>
-        <td>${t.training || ""}</td>
-        <td>${t.venue || ""}</td>
-        <td>${t.date || ""}</td>
-        <td><span class="badge">VALID</span></td>
-        <td>
-          <button class="delete-btn" onclick="deleteTrainee('${t.certificate}')">Delete</button>
-        </td>
-      </tr>`;
-    });
-  })
-  .catch(err=>{
-    console.error("Failed to fetch trainees:", err);
-  });
-}
-
-// ============ ADD TRAINEE ============
-
-function addTrainee(){
-  const data = {
-    name: name.value.trim(),
-    certificate: certificate.value.trim(),
-    training: training.value.trim(),
-    venue: venue.value.trim(),
-    date: date.value
-  };
-
-  if(!data.name || !data.certificate){
-    alert("Name and Certificate number are required.");
+  if(!cert){
+    res.innerHTML="Please enter certificate number ❌";
     return;
   }
 
-  fetch(API_URL + "?add=1", {
-    method: "POST",
-    body: JSON.stringify(data)
-  })
-  .then(res=>res.json())
-  .then(resp=>{
-    if(resp.success){
-      alert("Trainee added!");
-      loadTrainees();
-    } else {
-      alert("Failed to add trainee");
+  res.innerHTML="Verifying...";
+
+  fetch(API_URL + "?cert=" + encodeURIComponent(cert))
+  .then(r=>r.json())
+  .then(d=>{
+    if(!d.found){
+      res.innerHTML="CERTIFICATE NOT VALID ❌";
+      return;
     }
-  })
-  .catch(()=>alert("Server error while adding"));
-}
 
-// ============ DELETE TRAINEE ============
-
-function deleteTrainee(cert){
-  if(!confirm("Delete this trainee?")) return;
-
-  fetch(API_URL + "?delete=1&cert=" + encodeURIComponent(cert))
-  .then(res=>res.json())
-  .then(resp=>{
-    if(resp.success){
-      loadTrainees();
-    } else {
-      alert("Delete failed");
+    if(filter && d.training !== filter){
+      res.innerHTML="Training does not match filter ❌";
+      return;
     }
+
+    res.innerHTML=`
+      <b style="color:green">CERTIFICATE VERIFIED ✅</b><br><br>
+      <b>Name:</b> ${d.name}<br>
+      <b>Certificate #:</b> ${d.certificate}<br>
+      <b>Training:</b> ${d.training}<br>
+      <b>Venue:</b> ${d.venue}<br>
+      <b>Date:</b> ${d.date}
+    `;
   })
-  .catch(()=>alert("Server error while deleting"));
+  .catch(()=>{
+    res.innerHTML="Server error ❌";
+  });
 }
-
-// ============ LOGOUT ============
-
-function logoutAdmin(){
-  localStorage.removeItem("primed_admin");
-  window.location.href = "admin.html";
-}
-
-// Auto load on page open
-window.onload = loadTrainees;
-
 </script>
-
 </body>
 </html>
